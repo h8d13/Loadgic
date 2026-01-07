@@ -1,0 +1,108 @@
+/* =========================
+   GLOBAL RESET
+========================= */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================
+   BASE THEME
+========================= */
+body {
+  background-color: #0f1115;
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Open Sans', 'Helvetica Neue', sans-serif;
+  overflow: hidden;
+}
+
+/* =========================
+   APP LAYOUT
+========================= */
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   TITLEBAR (FRAMELESS)
+========================= */
+.titlebar {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: #0f1115;
+  border-bottom: 1px solid #1f2933;
+
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+/* App title */
+.title {
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-app-region: no-drag;
+}
+
+/* =========================
+   WINDOW CONTROLS
+========================= */
+.window-controls {
+  display: flex;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.window-controls button {
+  width: 32px;
+  height: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: none;
+  color: #e5e7eb;
+
+  font-size: 12px;
+  cursor: pointer;
+
+  transition: background-color 0.15s ease;
+}
+
+.window-controls button:hover {
+  background-color: #1f2933;
+}
+
+.window-controls .close:hover {
+  background-color: #dc2626;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+.content {
+  flex: 1;
+  background-color: #0f1115;
+  overflow: hidden;
+}
