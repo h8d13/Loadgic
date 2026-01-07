@@ -1,7 +1,7 @@
 <div align="center">
 
 ## Loadgic: An Open-Source Visualizer for Code Logic and Runtime Execution
-[![Project Page](https://img.shields.io/badge/Project-Page-blue?logo=microsoft)](https://github.com/microsoft/VibeVoice/blob/main/README.md)
+[![Project Page](https://img.shields.io/badge/Project-Page-blue?logo=microsoft)](https://github.com/Umbraw/Loadgic?tab=readme-ov-file)
 
 </div>
 
