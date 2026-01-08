@@ -52,7 +52,7 @@ body {
   border-bottom: 1px solid #1f2933;
 
   user-select: none;
-  -webkit-app-region: drag;
+  cursor: move;
 }
 
 /* App title */
@@ -60,7 +60,6 @@ body {
   font-weight: 500;
   font-size: 13px;
   line-height: 1;
-  -webkit-app-region: no-drag;
 }
 
 /* =========================

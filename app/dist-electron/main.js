@@ -26,6 +26,15 @@ ipcMain.handle("window:toggle-maximize", () => {
 ipcMain.handle("window:close", () => {
   mainWindow == null ? void 0 : mainWindow.close();
 });
+ipcMain.handle("window:get-pos", () => {
+  if (!mainWindow) return { x: 0, y: 0 };
+  const [x, y] = mainWindow.getPosition();
+  return { x, y };
+});
+ipcMain.handle("window:move-absolute", (_event, { x, y }) => {
+  if (!mainWindow) return;
+  mainWindow.setPosition(Math.round(x), Math.round(y));
+});
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: "Loadgic",
