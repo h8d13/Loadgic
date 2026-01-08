@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain, screen } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let mainWindow: BrowserWindow | null = null
