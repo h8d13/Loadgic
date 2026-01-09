@@ -1,47 +1,21 @@
-import { app, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let mainWindow: BrowserWindow | null = null
-let isPseudoMaximized = false
-let previousBounds: Electron.Rectangle | null = null
 
 ipcMain.handle('window:minimize', () => {
   mainWindow?.minimize()
 })
 
-ipcMain.handle('window:toggle-maximize', () => {
-  if (!mainWindow) return
-
-  const display = screen.getDisplayMatching(mainWindow.getBounds())
-  const workArea = display.workArea
-
-  if (!isPseudoMaximized) {
-    previousBounds = mainWindow.getBounds()
-    mainWindow.setBounds(workArea, true)
-    isPseudoMaximized = true
-  } else {
-    if (previousBounds) {
-      mainWindow.setBounds(previousBounds, true)
-    }
-    isPseudoMaximized = false
-  }
-})
-
 ipcMain.handle('window:close', () => {
-    mainWindow?.close()
+  mainWindow?.close()
 })
 
-ipcMain.handle('window:get-pos', () => {
-  if (!mainWindow) return { x: 0, y: 0 }
-  const [x, y] = mainWindow.getPosition()
-  return { x, y }
-})
-
-ipcMain.handle('window:move-absolute', (_event, { x, y }) => {
+ipcMain.handle('window:toggle-fullscreen', () => {
   if (!mainWindow) return
-  mainWindow.setPosition(Math.round(x), Math.round(y))
+  mainWindow.setFullScreen(!mainWindow.isFullScreen())
 })
 
 function createWindow() {
@@ -51,11 +25,16 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    maximizable: false,
+    fullscreenable: true,
     backgroundColor: '#0f1115',
     show: false,
     frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
     },
   })
 
@@ -71,6 +50,11 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
+  })
+
+  mainWindow.setMaximizable(false)
+  mainWindow.on('maximize', () => {
+    mainWindow?.unmaximize()
   })
 }
 

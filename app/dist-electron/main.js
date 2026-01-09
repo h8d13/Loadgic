@@ -1,39 +1,17 @@
-import { ipcMain, app, BrowserWindow, screen } from "electron";
+import { ipcMain, app, BrowserWindow } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 let mainWindow = null;
-let isPseudoMaximized = false;
-let previousBounds = null;
 ipcMain.handle("window:minimize", () => {
   mainWindow == null ? void 0 : mainWindow.minimize();
-});
-ipcMain.handle("window:toggle-maximize", () => {
-  if (!mainWindow) return;
-  const display = screen.getDisplayMatching(mainWindow.getBounds());
-  const workArea = display.workArea;
-  if (!isPseudoMaximized) {
-    previousBounds = mainWindow.getBounds();
-    mainWindow.setBounds(workArea, true);
-    isPseudoMaximized = true;
-  } else {
-    if (previousBounds) {
-      mainWindow.setBounds(previousBounds, true);
-    }
-    isPseudoMaximized = false;
-  }
 });
 ipcMain.handle("window:close", () => {
   mainWindow == null ? void 0 : mainWindow.close();
 });
-ipcMain.handle("window:get-pos", () => {
-  if (!mainWindow) return { x: 0, y: 0 };
-  const [x, y] = mainWindow.getPosition();
-  return { x, y };
-});
-ipcMain.handle("window:move-absolute", (_event, { x, y }) => {
+ipcMain.handle("window:toggle-fullscreen", () => {
   if (!mainWindow) return;
-  mainWindow.setPosition(Math.round(x), Math.round(y));
+  mainWindow.setFullScreen(!mainWindow.isFullScreen());
 });
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -42,11 +20,16 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    maximizable: false,
+    fullscreenable: true,
     backgroundColor: "#0f1115",
     show: false,
     frame: false,
     webPreferences: {
-      preload: path.join(__dirname$1, "preload.mjs")
+      preload: path.join(__dirname$1, "preload.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
     }
   });
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
@@ -57,6 +40,10 @@ function createWindow() {
   }
   mainWindow.once("ready-to-show", () => {
     mainWindow == null ? void 0 : mainWindow.show();
+  });
+  mainWindow.setMaximizable(false);
+  mainWindow.on("maximize", () => {
+    mainWindow == null ? void 0 : mainWindow.unmaximize();
   });
 }
 app.whenReady().then(createWindow);

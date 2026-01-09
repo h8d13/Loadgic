@@ -26,6 +26,10 @@ body {
   overflow: hidden;
 }
 
+#root {
+  background-color: #0f1115;
+}
+
 /* =========================
    APP LAYOUT
 ========================= */
@@ -34,6 +38,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: #0f1115;
 }
 
 /* =========================
@@ -52,10 +57,10 @@ body {
   border-bottom: 1px solid #1f2933;
 
   user-select: none;
-  cursor: move;
+  -webkit-app-region: drag;
+  cursor: default;
 }
 
-/* App title */
 .title {
   font-weight: 500;
   font-size: 13px;
@@ -80,21 +85,23 @@ body {
   justify-content: center;
 
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: #e5e7eb;
 
   font-size: 12px;
   cursor: pointer;
 
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .window-controls button:hover {
   background-color: #1f2933;
+  border-color: #2a3440;
 }
 
 .window-controls .close:hover {
   background-color: #dc2626;
+  border-color: #dc2626;
 }
 
 /* =========================
@@ -113,6 +120,7 @@ body {
   flex: 1;
   display: flex;
   overflow: hidden;
+  background-color: #0f1115;
 }
 
 /* =========================
@@ -146,7 +154,7 @@ body {
   border-radius: 8px;
 
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: #9ca3af;
 
   display: flex;
@@ -161,10 +169,12 @@ body {
 
 .menu-btn:hover {
   background-color: #1f2933;
+  border-color: #2a3440;
   color: #e5e7eb;
 }
 
 .menu-btn.active {
   background-color: #1f2933;
+  border-color: #2a3440;
   color: #e5e7eb;
 }
