@@ -1,9 +1,23 @@
-import Sidebar from './components/sidebar/Sidebar'
+import Sidebar from './components/sidebar/ActivityBar'
+import SidePanel from './components/sidebar/SidePanel'
 import { useState } from 'react'
 import type { ViewMode } from './types/view'
 
 function App() {
   const [activeView, setActiveView] = useState<ViewMode>('logic')
+  const [isPanelOpen, setIsPanelOpen] = useState(true)
+  const [panelWidth, setPanelWidth] = useState(320)
+
+  function selectView(next: ViewMode) {
+    setActiveView((prev) => {
+      if (prev === next) {
+        setIsPanelOpen((o) => !o)
+        return prev
+      }
+      setIsPanelOpen(true)
+      return next
+    })
+  }
 
   return (
     <div className="app">
@@ -17,9 +31,13 @@ function App() {
         </div>
       </div>
 
-      {/* MAIN LAYOUT */}
-      <div className="main">
-        <Sidebar activeView={activeView} onChangeView={setActiveView} />
+      <div
+        className="main"
+        style={{ ['--panel-width' as any]: isPanelOpen ? `${panelWidth}px` : '0px' }}
+      >
+        <Sidebar activeView={activeView} onChangeView={selectView} />
+        <SidePanel activeView={activeView} isOpen={isPanelOpen} />
+
         <div className="content">
           {activeView === 'logic' && <div>Logic View</div>}
           {activeView === 'files' && <div>Files View</div>}
@@ -27,7 +45,6 @@ function App() {
           {activeView === 'settings' && <div>Settings View</div>}
         </div>
       </div>
-
     </div>
   )
 }

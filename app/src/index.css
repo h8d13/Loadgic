@@ -39,6 +39,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: #0f1115;
+  min-width: 0;
 }
 
 /* =========================
@@ -105,26 +106,22 @@ body {
 }
 
 /* =========================
-   MAIN CONTENT
-========================= */
-.content {
-  flex: 1;
-  background-color: #0f1115;
-  overflow: hidden;
-}
-
-/* =========================
-   MAIN LAYOUT
+   MAIN LAYOUT (3 COLUMNS)
+   ActivityBar | SidePanel | Content
 ========================= */
 .main {
   flex: 1;
-  display: flex;
   overflow: hidden;
   background-color: #0f1115;
+
+  display: grid;
+  grid-template-columns: 54px var(--panel-width, 0px) 1fr;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* =========================
-   SIDEBAR STRUCTURE
+   ACTIVITY BAR (YOUR SIDEBAR ICONS)
 ========================= */
 .sidebar {
   width: 54px;
@@ -133,6 +130,8 @@ body {
 
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 .sidebar-top,
@@ -164,7 +163,7 @@ body {
   cursor: pointer;
   font-size: 18px;
 
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .menu-btn:hover {
@@ -177,4 +176,58 @@ body {
   background-color: #1f2933;
   border-color: #2a3440;
   color: #e5e7eb;
+}
+
+/* =========================
+   SIDE PANEL (CONTEXTUAL OPTIONS)
+========================= */
+.sidepanel {
+  background-color: #0b0d11;
+  border-right: 1px solid #1f2933;
+
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sidepanel.closed {
+  border-right: none;
+}
+
+.sidepanel-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid #1f2933;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 40px;
+}
+
+.sidepanel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.04em;
+}
+
+.sidepanel-body {
+  padding: 12px;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* =========================
+   MAIN CONTENT (RIGHT AREA)
+========================= */
+.content {
+  background-color: #0f1115;
+  overflow: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
 }

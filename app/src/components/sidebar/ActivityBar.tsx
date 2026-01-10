@@ -5,7 +5,7 @@ import {
   FilesIcon,
   RunIcon,
   SettingsIcon
-} from '@/components/icons'
+} from '../icons'
 
 interface SidebarProps {
   activeView: ViewMode
