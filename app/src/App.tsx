@@ -25,9 +25,9 @@ function App() {
         <div className="title">Loadgic</div>
 
         <div className="window-controls">
-          <button onClick={() => window.loadgic.minimize()}>—</button>
-          <button onClick={() => window.loadgic.toggleFullscreen()}>▢</button>
-          <button className="close" onClick={() => window.loadgic.close()}>✕</button>
+          <button onClick={() => window.loadgic?.minimize()}>—</button>
+          <button onClick={() => window.loadgic?.toggleFullscreen()}>▢</button>
+          <button className="close" onClick={() => window.loadgic?.close()}>✕</button>
         </div>
       </div>
 
