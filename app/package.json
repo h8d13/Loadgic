@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "clean": "rm -rf dist dist-electron release builder-debug.yml builder-effective-config.yaml",
     "dev": "ELECTRON_OZONE_PLATFORM_HINT=x11 vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
