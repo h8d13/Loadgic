@@ -13,3 +13,33 @@
 ### Overview
 
 Loadgic is an open-source tool that visualizes code logic and execution flow, helping developers better understand, analyze, and debug their code. It transforms complex code structures into intuitive visual representations, making program behavior easier to follow and reason about.
+
+### Install and Execute
+
+#### Requirements
+
+- Node.js 18+ (recommended)
+- npm (comes with Node.js)
+
+#### Install
+
+From the project root:
+
+```bash
+cd app
+npm install
+```
+
+#### Run in development
+
+```bash
+npm run dev
+```
+
+#### Build and package
+
+```bash
+npm run build
+```
+
+The packaged application is written to `app/release/<version>/`.
