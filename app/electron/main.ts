@@ -6,19 +6,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Disable Wayland color management protocol (wp_color_manager_v1) to prevent
 // errors on compositors that don't fully implement it yet
 if (process.platform === 'linux') {
-  const args = process.argv
-
-  if (args.includes('--wayland')) {
-    // Waylande natif (Ozone)
-    app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform')
-    app.commandLine.appendSwitch('ozone-platform', 'wayland')
-  }
-
-  if (args.includes('--X11')) {
-    // X11 natif
-    app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform')
-    app.commandLine.appendSwitch('ozone-platform', 'x11')
-  }
   app.commandLine.appendSwitch('disable-features', 'WaylandWpColorManagerV1')
 }
 
