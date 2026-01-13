@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const DEBUG = process.env.DEBUG === 'true'
-console.log('DEBUG mode:', DEBUG, 'env:', process.env.DEBUG)
+console.log('DEBUG mode:', DEBUG)
 
 function debug(...args: unknown[]) {
   if (DEBUG) console.log('DEBUG:', ...args)
