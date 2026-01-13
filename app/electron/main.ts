@@ -31,10 +31,10 @@ if (process.platform === 'linux') {
     app.commandLine.appendSwitch('disable-features', 'WaylandWpColorManagerV1')
     app.commandLine.appendSwitch('ozone-platform', 'wayland')
     app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform')
-  } else if (ds_type === 'x11') {
+  } else if (ds_type === 'x11' || !ds_type) {
     app.commandLine.appendSwitch('ozone-platform', 'x11')
   }
-}
+} // catch if undefined fallback to xorg
 
 // More platforms
 
