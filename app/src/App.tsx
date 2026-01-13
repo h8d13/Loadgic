@@ -1,5 +1,6 @@
 import Sidebar from './components/sidebar/ActivityBar'
 import SidePanel from './components/sidebar/SidePanel'
+import MenuBar from './components/MenuBar'
 import { useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 
@@ -103,7 +104,10 @@ function App() {
   return (
     <div className="app">
       <div className="titlebar">
-        <div className="title">Loadgic</div>
+        <div className="titlebar-left">
+          <div className="title">Loadgic</div>
+          <MenuBar />
+        </div>
 
         <div className="window-controls">
           <button onClick={() => window.loadgic?.minimize()}>—</button>
