@@ -10,7 +10,7 @@ function debug(...args: unknown[]) {
   if (DEBUG) console.log('DEBUG:', ...args)
 }
 
-const handle = (channel: string, fn: () => void) => {
+const handle = <T>(channel: string, fn: () => T) => {
   ipcMain.handle(channel, () => (debug('IPC:', channel), fn()))
 }
 const pendingSends = new Map<string, NodeJS.Timeout>()
@@ -49,7 +49,9 @@ if (process.platform === 'linux') {
 // END ENV
 
 let mainWindow: BrowserWindow | null = null
+let currentZoom = 1.0
 
+// Window controls
 handle('window:minimize', () => mainWindow?.minimize())
 handle('window:maximize', () => {
   if (!mainWindow) return
@@ -59,6 +61,28 @@ handle('window:close', () => mainWindow?.close())
 handle('window:toggle-fullscreen', () => {
   if (!mainWindow) return
   mainWindow.setFullScreen(!mainWindow.isFullScreen())
+})
+
+// Zoom operations
+handle('view:zoom-in', () => {
+  if (!mainWindow) return currentZoom
+  currentZoom = Math.min(currentZoom + 0.1, 3.0)
+  mainWindow.webContents.setZoomFactor(currentZoom)
+  return currentZoom
+})
+
+handle('view:zoom-out', () => {
+  if (!mainWindow) return currentZoom
+  currentZoom = Math.max(currentZoom - 0.1, 0.3)
+  mainWindow.webContents.setZoomFactor(currentZoom)
+  return currentZoom
+})
+
+handle('view:zoom-reset', () => {
+  if (!mainWindow) return currentZoom
+  currentZoom = 1.0
+  mainWindow.webContents.setZoomFactor(currentZoom)
+  return currentZoom
 })
 
 function createWindow() {
@@ -105,6 +129,8 @@ function createWindow() {
   mainWindow.on('unmaximize', () => send('window:did-unmaximize'))
   mainWindow.on('focus', () => send('window:did-focus'))
   mainWindow.on('blur', () => send('window:did-blur'))
+  mainWindow.on('enter-full-screen', () => send('window:did-enter-fullscreen'))
+  mainWindow.on('leave-full-screen', () => send('window:did-leave-fullscreen'))
   // MORE EVENTS HERE
 }
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
 interface MenuItem {
   label: string
@@ -13,61 +13,44 @@ interface Menu {
   items: MenuItem[]
 }
 
-const menus: Menu[] = [
-  {
-    label: 'File',
-    items: [
-      { label: 'New File', shortcut: 'Ctrl+N' },
-      { label: 'Open File...', shortcut: 'Ctrl+O' },
-      { label: 'Open Folder...', shortcut: 'Ctrl+Shift+O' },
-      { separator: true, label: '' },
-      { label: 'Save', shortcut: 'Ctrl+S' },
-      { label: 'Save As...', shortcut: 'Ctrl+Shift+S' },
-      { separator: true, label: '' },
-      { label: 'Exit', shortcut: 'Alt+F4' },
-    ],
-  },
-  {
-    label: 'Edit',
-    items: [
-      { label: 'Undo', shortcut: 'Ctrl+Z' },
-      { label: 'Redo', shortcut: 'Ctrl+Shift+Z' },
-      { separator: true, label: '' },
-      { label: 'Cut', shortcut: 'Ctrl+X' },
-      { label: 'Copy', shortcut: 'Ctrl+C' },
-      { label: 'Paste', shortcut: 'Ctrl+V' },
-      { separator: true, label: '' },
-      { label: 'Find', shortcut: 'Ctrl+F' },
-      { label: 'Replace', shortcut: 'Ctrl+H' },
-    ],
-  },
-  {
-    label: 'View',
-    items: [
-      { label: 'Toggle Sidebar', shortcut: 'Ctrl+B' },
-      { label: 'Toggle Panel', shortcut: 'Ctrl+J' },
-      { separator: true, label: '' },
-      { label: 'Zoom In', shortcut: 'Ctrl+=' },
-      { label: 'Zoom Out', shortcut: 'Ctrl+-' },
-      { label: 'Reset Zoom', shortcut: 'Ctrl+0' },
-      { separator: true, label: '' },
-      { label: 'Full Screen', shortcut: 'F11' },
-    ],
-  },
-  {
-    label: 'Help',
-    items: [
-      { label: 'Documentation' },
-      { label: 'Keyboard Shortcuts', shortcut: 'Ctrl+K Ctrl+S' },
-      { separator: true, label: '' },
-      { label: 'About Loadgic' },
-    ],
-  },
-]
-
 export default function MenuBar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const menuBarRef = useRef<HTMLDivElement>(null)
+
+  const handleTogglePanel = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('loadgic:toggle-panel'))
+  }, [])
+
+  const handleZoomIn = useCallback(async () => {
+    await window.loadgic?.zoomIn()
+  }, [])
+
+  const handleZoomOut = useCallback(async () => {
+    await window.loadgic?.zoomOut()
+  }, [])
+
+  const handleZoomReset = useCallback(async () => {
+    await window.loadgic?.zoomReset()
+  }, [])
+
+  const handleFullscreen = useCallback(() => {
+    window.loadgic?.toggleFullscreen()
+  }, [])
+
+  const menus: Menu[] = [
+    {
+      label: 'View',
+      items: [
+        { label: 'Toggle Panel', shortcut: 'Ctrl+J', action: handleTogglePanel },
+        { separator: true, label: '' },
+        { label: 'Zoom In', shortcut: 'Ctrl+=', action: handleZoomIn },
+        { label: 'Zoom Out', shortcut: 'Ctrl+-', action: handleZoomOut },
+        { label: 'Reset Zoom', shortcut: 'Ctrl+0', action: handleZoomReset },
+        { separator: true, label: '' },
+        { label: 'Full Screen', shortcut: 'F11', action: handleFullscreen },
+      ],
+    },
+  ]
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -79,6 +62,34 @@ export default function MenuBar() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const ctrl = e.ctrlKey || e.metaKey
+
+      if (ctrl && e.key === 'j') {
+        e.preventDefault()
+        handleTogglePanel()
+      } else if (ctrl && e.key === '=') {
+        e.preventDefault()
+        handleZoomIn()
+      } else if (ctrl && e.key === '-') {
+        e.preventDefault()
+        handleZoomOut()
+      } else if (ctrl && e.key === '0') {
+        e.preventDefault()
+        handleZoomReset()
+      } else if (e.key === 'F11') {
+        e.preventDefault()
+        handleFullscreen()
+      } else if (e.key === 'Escape') {
+        setOpenMenu(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleTogglePanel, handleZoomIn, handleZoomOut, handleZoomReset, handleFullscreen])
 
   function handleMenuClick(label: string) {
     setOpenMenu(openMenu === label ? null : label)

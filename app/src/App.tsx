@@ -1,7 +1,7 @@
 import Sidebar from './components/sidebar/ActivityBar'
 import SidePanel from './components/sidebar/SidePanel'
 import MenuBar from './components/MenuBar'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 
 const SIDEBAR_WIDTH = 54
@@ -28,6 +28,18 @@ function App() {
       return next
     })
   }
+
+  const togglePanel = useCallback(() => {
+    setIsPanelOpen((o) => !o)
+  }, [])
+
+  useEffect(() => {
+    const handleTogglePanel = () => togglePanel()
+    window.addEventListener('loadgic:toggle-panel', handleTogglePanel)
+    return () => {
+      window.removeEventListener('loadgic:toggle-panel', handleTogglePanel)
+    }
+  }, [togglePanel])
 
   useEffect(() => {
     panelWidthRef.current = panelWidth
