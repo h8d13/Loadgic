@@ -124,7 +124,6 @@ function App() {
         <SidePanel
           activeView={activeView}
           isOpen={isPanelOpen}
-          onToggle={() => setIsPanelOpen((open) => !open)}
         />
         <div
           className="sidepanel-resizer"
@@ -133,12 +132,12 @@ function App() {
           role="separator"
         />
         <button
-          className={`sidepanel-handle ${isPanelOpen ? 'hidden' : ''}`}
-          onClick={() => setIsPanelOpen(true)}
-          aria-label="Show panel"
-          title="Show panel"
+          className="sidepanel-handle"
+          onClick={() => setIsPanelOpen((open) => !open)}
+          aria-label={isPanelOpen ? 'Hide panel' : 'Show panel'}
+          title={isPanelOpen ? 'Hide panel' : 'Show panel'}
         >
-          ▶
+          {isPanelOpen ? '◀' : '▶'}
         </button>
 
         <div className="content">

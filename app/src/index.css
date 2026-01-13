@@ -366,6 +366,7 @@ body {
 
 .sidepanel-body {
   padding: 12px;
+  padding-left: 24px;
   overflow: auto;
   min-height: 0;
 }
@@ -412,16 +413,12 @@ body {
   align-items: center;
   justify-content: center;
   transition: background-color 0.15s ease, color 0.15s ease;
-  z-index: 3;
+  z-index: 10;
 }
 
 .sidepanel-handle:hover {
   background-color: var(--hover-bg);
   color: var(--text-primary);
-}
-
-.sidepanel-handle.hidden {
-  display: none;
 }
 
 /* =========================
