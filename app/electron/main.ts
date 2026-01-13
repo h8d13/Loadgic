@@ -13,6 +13,11 @@ function debug(...args: unknown[]) {
 const handle = (channel: string, fn: () => void) => {
   ipcMain.handle(channel, () => (debug('IPC:', channel), fn()))
 }
+const send = (channel: string) => {
+  debug('IPC:', channel)
+  mainWindow?.webContents.send(channel)
+}
+
 // ENV
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -91,11 +96,6 @@ function createWindow() {
     const [w, h] = mainWindow?.getSize() ?? [0, 0]
     debug(`Window resized: ${w}x${h}`)
   })
-
-  const send = (channel: string) => {
-    debug('IPC:', channel)
-    mainWindow?.webContents.send(channel)
-  }
 
   mainWindow.on('restore', () => send('window:did-restore'))
   mainWindow.on('minimize', () => send('window:did-minimize'))
