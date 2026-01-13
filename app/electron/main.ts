@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -91,9 +91,8 @@ function createWindow() {
   }
 
   mainWindow.once('ready-to-show', () => {
+    mainWindow?.setFullScreen(true)
     mainWindow?.show()
-    const [w, h] = mainWindow?.getSize() ?? [0, 0]
-    debug(`Init size: ${w}x${h}`)
   })
 
   mainWindow.on('resize', () => {
@@ -110,12 +109,7 @@ function createWindow() {
 
 }
 
-app.whenReady().then(() => {
-  const primaryDisplay = screen.getPrimaryDisplay()
-  const { width, height } = primaryDisplay.size
-  debug(`Screen size: ${width}x${height}`)
-  createWindow()
-})
+app.whenReady().then(createWindow)
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
