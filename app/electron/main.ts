@@ -3,6 +3,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Disable Wayland color management protocol (wp_color_manager_v1) to prevent
+// errors on compositors that don't fully implement it yet
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('disable-features', 'WaylandWpColorManagerV1')
+}
+
 let mainWindow: BrowserWindow | null = null
 
 ipcMain.handle('window:minimize', () => {
