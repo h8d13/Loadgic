@@ -114,7 +114,7 @@ function App() {
 
       <div
         className="main"
-        style={{ ['--panel-width' as any]: isPanelOpen ? `${panelWidth}px` : '0px' }}
+        style={{ '--panel-width': isPanelOpen ? `${panelWidth}px` : '0px' } as React.CSSProperties}
       >
         <Sidebar activeView={activeView} onChangeView={selectView} />
         <SidePanel

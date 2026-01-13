@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { IpcRendererEvent } from 'electron'
 
 const on = (channel: string, handler: () => void) => {
   const listener = () => handler()

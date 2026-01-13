@@ -9,7 +9,7 @@ console.log('DEBUG mode:', DEBUG, 'env:', process.env.DEBUG)
 function debug(...args: unknown[]) {
   if (DEBUG) console.log('DEBUG:', ...args)
 }
-
+// Hello PLESASE CHEKC FILE
 const handle = (channel: string, fn: () => void) => {
   ipcMain.handle(channel, () => (debug('IPC:', channel), fn()))
 }
