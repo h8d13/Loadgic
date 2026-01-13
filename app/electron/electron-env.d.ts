@@ -23,5 +23,10 @@ declare namespace NodeJS {
 
 // Used in Renderer process, expose in `preload.ts`
 interface Window {
-  ipcRenderer: import('electron').IpcRenderer
+  loadgic: {
+    minimize: () => Promise<void>
+    close: () => Promise<void>
+    toggleFullscreen: () => Promise<void>
+    onMainMessage: (handler: (message: string) => void) => () => void
+  }
 }
