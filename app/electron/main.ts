@@ -69,11 +69,6 @@ function createWindow() {
     }
   }, 1500)
   mainWindow.on('show', () => clearTimeout(fallback))
-
-  mainWindow.setMaximizable(false)
-  mainWindow.on('maximize', () => {
-    mainWindow?.unmaximize()
-  })
 }
 
 app.whenReady().then(createWindow)

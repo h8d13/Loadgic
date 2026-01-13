@@ -5,15 +5,12 @@ const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 if (process.platform === "linux") {
   app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
 }
-console.log("XDG_SESSION_TYPE:", process.env.XDG_SESSION_TYPE);
-console.log("WAYLAND_DISPLAY:", process.env.WAYLAND_DISPLAY);
-console.log("DISPLAY:", process.env.DISPLAY);
 let mainWindow = null;
 ipcMain.handle("window:minimize", () => {
-  mainWindow == null ? void 0 : mainWindow.minimize();
+  mainWindow?.minimize();
 });
 ipcMain.handle("window:close", () => {
-  mainWindow == null ? void 0 : mainWindow.close();
+  mainWindow?.close();
 });
 ipcMain.handle("window:toggle-fullscreen", () => {
   if (!mainWindow) return;
@@ -45,7 +42,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname$1, "../dist/index.html"));
   }
   mainWindow.once("ready-to-show", () => {
-    mainWindow == null ? void 0 : mainWindow.show();
+    mainWindow?.show();
   });
   const fallback = setTimeout(() => {
     if (mainWindow && !mainWindow.isVisible()) {
@@ -53,10 +50,6 @@ function createWindow() {
     }
   }, 1500);
   mainWindow.on("show", () => clearTimeout(fallback));
-  mainWindow.setMaximizable(false);
-  mainWindow.on("maximize", () => {
-    mainWindow == null ? void 0 : mainWindow.unmaximize();
-  });
 }
 app.whenReady().then(createWindow);
 app.on("window-all-closed", () => {
