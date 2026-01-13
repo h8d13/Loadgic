@@ -8,16 +8,16 @@ for i in "$@"; do
 	case $i in
 		-d|--dev)
 		shift
-		"$n_r" dev
+		$n_r dev
 		exit 0
 		;;
 		-dd|--debug)
 		shift
-		"$n_r" dev:debug
+		$n_r dev:debug
 		exit 0
 		;;
 		-b|--build)
-		"$n_r" build
+		$n_r build
 		exit 0
 		;;
 		*)
