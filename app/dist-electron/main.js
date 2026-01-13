@@ -2,8 +2,22 @@ import { app, ipcMain, BrowserWindow } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    mainWindow = null;
+  }
+});
 if (process.platform === "linux") {
-  app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
+  const ds_type = process.env.XDG_SESSION_TYPE;
+  console.log(ds_type);
+  if (ds_type === "wayland") {
+    app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
+    app.commandLine.appendSwitch("ozone-platform", "wayland");
+    app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
+  } else if (ds_type === "x11") {
+    app.commandLine.appendSwitch("ozone-platform", "x11");
+  }
 }
 let mainWindow = null;
 ipcMain.handle("window:minimize", () => {
@@ -23,7 +37,6 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    maximizable: false,
     fullscreenable: true,
     backgroundColor: "#0f1115",
     show: false,
@@ -44,18 +57,8 @@ function createWindow() {
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
   });
-  mainWindow.setMaximizable(false);
-  mainWindow.on("maximize", () => {
-    mainWindow?.unmaximize();
-  });
 }
 app.whenReady().then(createWindow);
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    mainWindow = null;
-  }
-});
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
