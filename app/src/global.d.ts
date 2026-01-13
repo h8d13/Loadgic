@@ -6,6 +6,7 @@ declare global {
       minimize: () => void
       close: () => void
       toggleFullscreen: () => void
+      onMainMessage?: (handler: (message: string) => void) => () => void
     }
   }
 }
