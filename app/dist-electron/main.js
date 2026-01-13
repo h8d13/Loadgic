@@ -1,13 +1,16 @@
-import { ipcMain, app, BrowserWindow } from "electron";
+import { app, ipcMain, BrowserWindow } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
+if (process.platform === "linux") {
+  app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
+}
 let mainWindow = null;
 ipcMain.handle("window:minimize", () => {
-  mainWindow == null ? void 0 : mainWindow.minimize();
+  mainWindow?.minimize();
 });
 ipcMain.handle("window:close", () => {
-  mainWindow == null ? void 0 : mainWindow.close();
+  mainWindow?.close();
 });
 ipcMain.handle("window:toggle-fullscreen", () => {
   if (!mainWindow) return;
@@ -39,11 +42,11 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname$1, "../dist/index.html"));
   }
   mainWindow.once("ready-to-show", () => {
-    mainWindow == null ? void 0 : mainWindow.show();
+    mainWindow?.show();
   });
   mainWindow.setMaximizable(false);
   mainWindow.on("maximize", () => {
-    mainWindow == null ? void 0 : mainWindow.unmaximize();
+    mainWindow?.unmaximize();
   });
 }
 app.whenReady().then(createWindow);
