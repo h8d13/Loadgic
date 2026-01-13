@@ -8,11 +8,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('disable-features', 'WaylandWpColorManagerV1')
 }
-
-//console.log('XDG_SESSION_TYPE:', process.env.XDG_SESSION_TYPE)
-//console.log('WAYLAND_DISPLAY:', process.env.WAYLAND_DISPLAY)
-//console.log('DISPLAY:', process.env.DISPLAY)
-
 let mainWindow: BrowserWindow | null = null
 
 ipcMain.handle('window:minimize', () => {
