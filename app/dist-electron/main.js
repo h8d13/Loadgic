@@ -3,15 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 if (process.platform === "linux") {
-  const args = process.argv;
-  if (args.includes("--wayland")) {
-    app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
-    app.commandLine.appendSwitch("ozone-platform", "wayland");
-  }
-  if (args.includes("--X11")) {
-    app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
-    app.commandLine.appendSwitch("ozone-platform", "x11");
-  }
   app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
 }
 console.log("XDG_SESSION_TYPE:", process.env.XDG_SESSION_TYPE);
