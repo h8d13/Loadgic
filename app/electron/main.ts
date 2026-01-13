@@ -1,7 +1,18 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, screen, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const DEBUG = process.env.DEBUG === 'true'
+console.log('DEBUG mode:', DEBUG, 'env:', process.env.DEBUG)
+
+function debug(...args: unknown[]) {
+  if (DEBUG) console.log('DEBUG:', ...args)
+}
+
+const handle = (channel: string, fn: () => void) => {
+  ipcMain.handle(channel, () => (debug('IPC:', channel), fn()))
+}
 
 // ENV
 app.on('window-all-closed', () => {
@@ -13,7 +24,7 @@ app.on('window-all-closed', () => {
 
 if (process.platform === 'linux') {
   const ds_type = process.env.XDG_SESSION_TYPE
-  console.log(ds_type)
+  debug('Session type:', ds_type)
 
   // Handle Wayland vs X11 display server
   if (ds_type === 'wayland') {
@@ -31,15 +42,13 @@ if (process.platform === 'linux') {
 
 let mainWindow: BrowserWindow | null = null
 
-ipcMain.handle('window:minimize', () => {
-  mainWindow?.minimize()
+handle('window:minimize', () => mainWindow?.minimize())
+handle('window:maximize', () => {
+  if (!mainWindow) return
+  mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
 })
-
-ipcMain.handle('window:close', () => {
-  mainWindow?.close()
-})
-
-ipcMain.handle('window:toggle-fullscreen', () => {
+handle('window:close', () => mainWindow?.close())
+handle('window:toggle-fullscreen', () => {
   if (!mainWindow) return
   mainWindow.setFullScreen(!mainWindow.isFullScreen())
 })
@@ -75,11 +84,35 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
+    const [w, h] = mainWindow?.getSize() ?? [0, 0]
+    debug(`Init size: ${w}x${h}`)
   })
+
+  mainWindow.on('resize', () => {
+    const [w, h] = mainWindow?.getSize() ?? [0, 0]
+    debug(`Window resized: ${w}x${h}`)
+  })
+
+  const send = (channel: string) => {
+    debug('IPC:', channel)
+    mainWindow?.webContents.send(channel)
+  }
+
+  mainWindow.on('restore', () => send('window:did-restore'))
+  mainWindow.on('minimize', () => send('window:did-minimize'))
+  mainWindow.on('maximize', () => send('window:did-maximize'))
+  mainWindow.on('unmaximize', () => send('window:did-unmaximize'))
+  mainWindow.on('focus', () => send('window:did-focus'))
+  mainWindow.on('blur', () => send('window:did-blur'))
 
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width, height } = primaryDisplay.size
+  debug(`Screen size: ${width}x${height}`)
+  createWindow()
+})
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
