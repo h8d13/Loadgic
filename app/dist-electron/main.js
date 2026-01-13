@@ -3,14 +3,26 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 if (process.platform === "linux") {
+  const args = process.argv;
+  if (args.includes("--wayland")) {
+    app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
+    app.commandLine.appendSwitch("ozone-platform", "wayland");
+  }
+  if (args.includes("--X11")) {
+    app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
+    app.commandLine.appendSwitch("ozone-platform", "x11");
+  }
   app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
 }
+console.log("XDG_SESSION_TYPE:", process.env.XDG_SESSION_TYPE);
+console.log("WAYLAND_DISPLAY:", process.env.WAYLAND_DISPLAY);
+console.log("DISPLAY:", process.env.DISPLAY);
 let mainWindow = null;
 ipcMain.handle("window:minimize", () => {
-  mainWindow?.minimize();
+  mainWindow == null ? void 0 : mainWindow.minimize();
 });
 ipcMain.handle("window:close", () => {
-  mainWindow?.close();
+  mainWindow == null ? void 0 : mainWindow.close();
 });
 ipcMain.handle("window:toggle-fullscreen", () => {
   if (!mainWindow) return;
@@ -42,11 +54,17 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname$1, "../dist/index.html"));
   }
   mainWindow.once("ready-to-show", () => {
-    mainWindow?.show();
+    mainWindow == null ? void 0 : mainWindow.show();
   });
+  const fallback = setTimeout(() => {
+    if (mainWindow && !mainWindow.isVisible()) {
+      mainWindow.show();
+    }
+  }, 1500);
+  mainWindow.on("show", () => clearTimeout(fallback));
   mainWindow.setMaximizable(false);
   mainWindow.on("maximize", () => {
-    mainWindow?.unmaximize();
+    mainWindow == null ? void 0 : mainWindow.unmaximize();
   });
 }
 app.whenReady().then(createWindow);
