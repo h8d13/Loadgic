@@ -99,14 +99,14 @@ function createWindow() {
     const [w, h] = mainWindow?.getSize() ?? [0, 0]
     debug(`Window resized: ${w}x${h}`)
   })
-
+  // HOOKS
   mainWindow.on('restore', () => send('window:did-restore'))
   mainWindow.on('minimize', () => send('window:did-minimize'))
   mainWindow.on('maximize', () => send('window:did-maximize'))
   mainWindow.on('unmaximize', () => send('window:did-unmaximize'))
   mainWindow.on('focus', () => send('window:did-focus'))
   mainWindow.on('blur', () => send('window:did-blur'))
-
+  // MORE EVENTS HERE
 }
 
 app.whenReady().then(createWindow)
