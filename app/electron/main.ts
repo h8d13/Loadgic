@@ -13,9 +13,12 @@ function debug(...args: unknown[]) {
 const handle = (channel: string, fn: () => void) => {
   ipcMain.handle(channel, () => (debug('IPC:', channel), fn()))
 }
-const send = (channel: string) => {
+const pendingSends = new Map<string, NodeJS.Timeout>()
+const send = (channel: string, debounceMs = 16) => {
+  if (pendingSends.has(channel)) return
   debug('IPC:', channel)
   mainWindow?.webContents.send(channel)
+  pendingSends.set(channel, setTimeout(() => pendingSends.delete(channel), debounceMs))
 }
 
 // ENV
@@ -37,6 +40,7 @@ if (process.platform === 'linux') {
     app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform')
   } else if (ds_type === 'x11' || !ds_type) {
     app.commandLine.appendSwitch('ozone-platform', 'x11')
+    app.commandLine.appendSwitch('disable-gpu-compositing')
   }
 } // catch if undefined fallback to xorg
 
