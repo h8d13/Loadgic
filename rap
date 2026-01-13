@@ -1,0 +1,21 @@
+#!/bin/bash
+cd app/ || exit 1
+
+for i in "$@"; do
+	case $i in
+		-d|--dev)
+		shift
+		npm run dev
+		exit 0
+		;;
+		-dd|--debug)
+		shift
+		npm run dev:debug
+		exit 0
+		;;
+		*)
+		echo "$@" && echo "Unknown opt"
+		exit 1
+		;;
+	esac
+done
