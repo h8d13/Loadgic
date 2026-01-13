@@ -1,16 +1,23 @@
 #!/bin/bash
+
+n_r="npm run"
+
 cd app/ || exit 1
 
 for i in "$@"; do
 	case $i in
 		-d|--dev)
 		shift
-		npm run dev
+		"$n_r" dev
 		exit 0
 		;;
 		-dd|--debug)
 		shift
-		npm run dev:debug
+		"$n_r" dev:debug
+		exit 0
+		;;
+		-b|--build)
+		"$n_r" build
 		exit 0
 		;;
 		*)
