@@ -1,28 +1,53 @@
 #!/bin/bash
 
-n_r="npm run"
+n="npm"
+x="npx"
 
-cd app/ || exit 1
+v="vite"
+r="run"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+go_to () {
+	cd "$SCRIPT_DIR/app" || exit 1
+}
+
 
 for i in "$@"; do
 	case $i in
+		-i|--install)
+		shift 
+		go_to
+		$n install
+		exit 0
+		;;
 		-d|--dev)
 		shift
-		$n_r dev
+		go_to
+		$n $r dev
+		exit 0
+		;;
+		-vi|--vite)
+		shift
+		go_to
+		$x $v build && electron .
 		exit 0
 		;;
 		-dd|--debug)
 		shift
-		$n_r dev:debug
+		go_to
+		$n $r dev:debug
 		exit 0
 		;;
 		-b|--build)
-		$n_r build
+		go_to
+		$n $r build
 		exit 0
 		;;
 		*)
-		echo "$@" && echo "Unknown opt"
-		exit 1
+		go_to
+		"$@"
+		exit 0
 		;;
 	esac
 done
