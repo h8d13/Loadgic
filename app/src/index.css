@@ -413,8 +413,15 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.2s ease;
   z-index: 10;
+  opacity: 0;
+}
+
+.sidepanel-handle:hover,
+.sidepanel-handle:focus,
+.sidebar:hover ~ .sidepanel-handle {
+  opacity: 1;
 }
 
 .sidepanel-handle:hover {
