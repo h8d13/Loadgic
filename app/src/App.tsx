@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
 import appLogo from './assets/logo/logo_512_512.png'
-import logoMark from './assets/logo/logo_svg.svg'
+import FileViewer from './components/files/FileViewer'
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
@@ -177,12 +177,25 @@ function App() {
               <div className="file-viewer-header">
                 {getBaseName(selectedFilePath ?? '')}
               </div>
-              <pre className="file-viewer-body">
-                {selectedFileContent ?? 'Unsupported or binary file.'}
-              </pre>
+              {selectedFileContent ? (
+                <FileViewer
+                  content={selectedFileContent}
+                  filePath={selectedFilePath}
+                />
+              ) : (
+                <pre className="file-viewer-body">
+                  Unsupported or binary file.
+                </pre>
+              )}
             </div>
           ) : (
-            <img className="content-watermark" src={logoMark} alt="" />
+            <img
+              className="content-watermark"
+              src="/logo-mark.svg"
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
           )}
         </div>
       </div>
