@@ -68,6 +68,7 @@ ipcMain.handle("dialog:open-project", async () => {
   return { rootPath, tree };
 });
 function createWindow() {
+  const iconPath = process.env.VITE_DEV_SERVER_URL ? path.join(__dirname$1, "../public/app-icon.png") : path.join(__dirname$1, "../dist/app-icon.png");
   mainWindow = new BrowserWindow({
     title: "Loadgic",
     width: 1200,
@@ -79,6 +80,7 @@ function createWindow() {
     backgroundColor: "#0f1115",
     show: false,
     frame: false,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs"),
       contextIsolation: true,

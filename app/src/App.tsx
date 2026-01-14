@@ -3,6 +3,7 @@ import SidePanel from './components/sidebar/SidePanel'
 import { useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
+import appLogo from './assets/logo/logo_512_512.png'
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
@@ -113,7 +114,10 @@ function App() {
   return (
     <div className="app">
       <div className="titlebar">
-        <div className="title">Loadgic</div>
+        <div className="title">
+          <img className="title-icon" src={appLogo} alt="" />
+          <span className="title-text">Loadgic</span>
+        </div>
 
         <div className="window-controls">
           <button onClick={() => window.loadgic?.minimize()}>—</button>
