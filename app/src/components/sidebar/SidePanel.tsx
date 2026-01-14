@@ -104,7 +104,7 @@ export default function SidePanel({
               Open project folder
             </button>
             {projectRoot ? (
-              <div className="files-root">Folder: {projectRoot}</div>
+              <div className="files-root">{projectRoot}</div>
             ) : (
               <div className="files-empty">No project loaded yet.</div>
             )}
