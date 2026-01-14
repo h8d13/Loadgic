@@ -30,7 +30,7 @@ for i in "$@"; do
 		-vi|--vite)
 		shift
 		go_to
-		$x $v build && electron .
+		$x tsc && $x $v build && electron .
 		exit 0
 		;;
 		-dd|--debug)

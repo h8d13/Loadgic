@@ -3,6 +3,8 @@ import SidePanel from './components/sidebar/SidePanel'
 import MenuBar from './components/MenuBar'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
+import type { ProjectNode } from './types/project'
+import FileViewer from './components/files/FileViewer'
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
@@ -10,9 +12,13 @@ const COLLAPSE_THRESHOLD = 140
 const MIN_CONTENT_WIDTH = 200
 
 function App() {
-  const [activeView, setActiveView] = useState<ViewMode>('logic')
+  const [activeView, setActiveView] = useState<ViewMode>('files')
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelWidth, setPanelWidth] = useState(320)
+  const [projectRoot, setProjectRoot] = useState<string | null>(null)
+  const [projectTree, setProjectTree] = useState<ProjectNode | null>(null)
+  const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
+  const [selectedFileContent, setSelectedFileContent] = useState<string | null>(null)
   const isResizingRef = useRef(false)
   const panelWidthRef = useRef(panelWidth)
   const isPanelOpenRef = useRef(isPanelOpen)
@@ -113,6 +119,25 @@ function App() {
     isResizingRef.current = true
   }
 
+  async function openProject() {
+    const result = await window.loadgic?.openProject?.()
+    if (!result) return
+    setProjectRoot(result.rootPath)
+    setProjectTree(result.tree)
+    setSelectedFilePath(null)
+    setSelectedFileContent(null)
+  }
+
+  async function handleSelectFile(filePath: string) {
+    setSelectedFilePath(filePath)
+    const content = await window.loadgic?.readFile?.(filePath)
+    setSelectedFileContent(content ?? null)
+  }
+
+  function getBaseName(filePath: string) {
+    return filePath.split(/[/\\\\]/).pop() ?? filePath
+  }
+
   return (
     <div className="app">
       <div className="titlebar">
@@ -136,6 +161,12 @@ function App() {
         <SidePanel
           activeView={activeView}
           isOpen={isPanelOpen}
+          onToggle={() => setIsPanelOpen((open) => !open)}
+          projectRoot={projectRoot}
+          projectTree={projectTree}
+          onOpenProject={openProject}
+          onSelectFile={handleSelectFile}
+          selectedFilePath={selectedFilePath}
         />
         <div
           className="sidepanel-resizer"
@@ -153,10 +184,31 @@ function App() {
         </button>
 
         <div className="content">
-          {activeView === 'logic' && <div>Logic View</div>}
-          {activeView === 'files' && <div>Files View</div>}
-          {activeView === 'run' && <div>Run View</div>}
-          {activeView === 'settings' && <div>Settings View</div>}
+          {activeView === 'files' && selectedFilePath ? (
+            <div className="file-viewer">
+              <div className="file-viewer-header">
+                {getBaseName(selectedFilePath ?? '')}
+              </div>
+              {selectedFileContent ? (
+                <FileViewer
+                  content={selectedFileContent}
+                  filePath={selectedFilePath}
+                />
+              ) : (
+                <pre className="file-viewer-body">
+                  Unsupported or binary file.
+                </pre>
+              )}
+            </div>
+          ) : (
+            <img
+              className="content-watermark"
+              src="/logo-mark.svg"
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+          )}
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@
 
 ## News
 
-* **06-01-2026**: Start of the Loadgic visualizer project 🚀
+* **06-01-2026**: Start of the Loadgic visualizer project
 
 ---
 
@@ -27,6 +27,13 @@ This project is built with:
 * React
 * TypeScript
 * Electron
+* CodeMirror 6 (file viewer)
+
+## Features
+
+* Project folder import and tree explorer
+* File viewer with syntax highlighting (CodeMirror)
+* Binary files are detected and skipped in the viewer
 
 ---
 
@@ -155,7 +162,7 @@ This does **not** delete your source code or dependencies.
 
 ## License
 
-This project is open-source. License information will be added soon.
+Licensed under the MIT License. See `LICENSE.md`.
 
 ---
 

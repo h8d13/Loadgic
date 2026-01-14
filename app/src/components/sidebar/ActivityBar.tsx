@@ -17,19 +17,19 @@ function Sidebar({ activeView, onChangeView }: SidebarProps) {
     <aside className="sidebar">
       <div className="sidebar-top">
         <button
-          className={`menu-btn ${activeView === 'logic' ? 'active' : ''}`}
-          onClick={() => onChangeView('logic')}
-          aria-label="Logic"
-        >
-          <LogicIcon size={20} />
-        </button>
-
-        <button
           className={`menu-btn ${activeView === 'files' ? 'active' : ''}`}
           onClick={() => onChangeView('files')}
           aria-label="Files"
         >
           <FilesIcon size={20} />
+        </button>
+
+        <button
+          className={`menu-btn ${activeView === 'logic' ? 'active' : ''}`}
+          onClick={() => onChangeView('logic')}
+          aria-label="Logic"
+        >
+          <LogicIcon size={20} />
         </button>
 
         <button

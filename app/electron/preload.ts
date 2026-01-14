@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 
 const on = (channel: string, handler: () => void) => {
   const listener = () => handler()
@@ -7,12 +7,25 @@ const on = (channel: string, handler: () => void) => {
 }
 
 contextBridge.exposeInMainWorld('loadgic', {
+  // Window controls
   minimize: () => ipcRenderer.invoke('window:minimize'),
   maximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),
   toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
+  // Your zoom controls
   zoomIn: () => ipcRenderer.invoke('view:zoom-in') as Promise<number>,
   zoomOut: () => ipcRenderer.invoke('view:zoom-out') as Promise<number>,
   zoomReset: () => ipcRenderer.invoke('view:zoom-reset') as Promise<number>,
+  // Your generic event listener
   on,
+  // Upstream: Project/file operations
+  openProject: () => ipcRenderer.invoke('dialog:open-project'),
+  readFile: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
+  onMainMessage: (handler: (message: string) => void) => {
+    const listener = (_event: IpcRendererEvent, message: string) => {
+      handler(message)
+    }
+    ipcRenderer.on('main-process-message', listener)
+    return () => ipcRenderer.removeListener('main-process-message', listener)
+  },
 })

@@ -1,6 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readFile, readdir } from 'node:fs/promises'
+import type { Dirent } from 'node:fs'
+import type { DirNode, TreeNode } from '@/types/project'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const DEBUG = process.env.DEBUG === 'true'
@@ -51,6 +54,28 @@ if (process.platform === 'linux') {
 let mainWindow: BrowserWindow | null = null
 let currentZoom = 1.0
 
+// Upstream: File tree configuration
+const IGNORED_DIRS = new Set(['.git', 'node_modules'])
+let currentProjectRoot: string | null = null
+const BINARY_EXTENSIONS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.bmp',
+  '.ico',
+  '.tiff',
+  '.pdf',
+  '.zip',
+  '.rar',
+  '.7z',
+  '.mp4',
+  '.mov',
+  '.mp3',
+  '.wav',
+])
+
 // Window controls
 handle('window:minimize', () => mainWindow?.minimize())
 handle('window:maximize', () => {
@@ -85,7 +110,90 @@ handle('view:zoom-reset', () => {
   return currentZoom
 })
 
+// Upstream: Recursively read a directory and build a project tree
+async function readProjectTree(dirPath: string): Promise<DirNode> {
+  async function walk(currentPath: string): Promise<TreeNode[]> {
+    let entries: Dirent[]
+    try {
+      entries = await readdir(currentPath, { withFileTypes: true })
+    } catch {
+      return []
+    }
+
+    const sortedEntries = entries
+      .filter((entry) => !IGNORED_DIRS.has(entry.name))
+      .sort((a, b) => {
+        if (a.isDirectory() !== b.isDirectory()) {
+          return a.isDirectory() ? -1 : 1
+        }
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      })
+
+    const children: TreeNode[] = await Promise.all(
+      sortedEntries.map(async (entry): Promise<TreeNode> => {
+        const entryPath = path.join(currentPath, entry.name)
+
+        if (entry.isDirectory()) {
+          return {
+            name: entry.name,
+            path: entryPath,
+            type: 'dir',
+            children: await walk(entryPath),
+          }
+        }
+        return { name: entry.name, path: entryPath, type: 'file' }
+      })
+    )
+    return children
+  }
+
+  return {
+    name: path.basename(dirPath),
+    path: dirPath,
+    type: 'dir',
+    children: await walk(dirPath),
+  }
+}
+
+// Upstream: Handle open directory selector
+ipcMain.handle('dialog:open-project', async () => {
+  if (!mainWindow) return null
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+  })
+  if (result.canceled || result.filePaths.length === 0) {
+    return null
+  }
+  const rootPath = result.filePaths[0]
+  currentProjectRoot = rootPath
+  const tree = await readProjectTree(rootPath)
+  return { rootPath, tree }
+})
+
+// Upstream: Safe file reading
+ipcMain.handle('file:read', async (_event, filePath: string) => {
+  if (!currentProjectRoot) return null
+  const resolvedRoot = path.resolve(currentProjectRoot)
+  const resolvedFile = path.resolve(filePath)
+  if (!resolvedFile.startsWith(resolvedRoot + path.sep)) {
+    return null
+  }
+  if (BINARY_EXTENSIONS.has(path.extname(resolvedFile).toLowerCase())) {
+    return null
+  }
+  try {
+    const buffer = await readFile(resolvedFile)
+    if (buffer.includes(0)) return null
+    return buffer.toString('utf-8')
+  } catch {
+    return null
+  }
+})
+
 function createWindow() {
+  const iconPath = process.env.VITE_DEV_SERVER_URL
+    ? path.join(__dirname, '../public/app-icon.png')
+    : path.join(__dirname, '../dist/app-icon.png')
   mainWindow = new BrowserWindow({
     title: 'Loadgic',
     width: 1200,
@@ -96,6 +204,7 @@ function createWindow() {
     backgroundColor: '#0f1115',
     show: false,
     frame: false,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       contextIsolation: true,
@@ -122,7 +231,8 @@ function createWindow() {
     const [w, h] = mainWindow?.getSize() ?? [0, 0]
     debug(`Window resized: ${w}x${h}`)
   })
-  // HOOKS
+
+  // HOOKS (your window lifecycle events)
   mainWindow.on('restore', () => send('window:did-restore'))
   mainWindow.on('minimize', () => send('window:did-minimize'))
   mainWindow.on('maximize', () => send('window:did-maximize'))
