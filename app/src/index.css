@@ -604,6 +604,7 @@ body {
   padding: 6px 4px 12px 0;
   scrollbar-width: thin;
   scrollbar-color: #1f2933 transparent;
+  user-select: none;
 }
 
 .files-footer-space {
