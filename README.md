@@ -10,13 +10,13 @@
 
 ---
 
-## 📰 News
+## News
 
-* **06-01-2026**: Start of the Loadgic visualizer project 🚀
+* **06-01-2026**: Start of the Loadgic visualizer project
 
 ---
 
-## 📖Overview
+## Overview
 
 **Loadgic** is an open-source desktop application that visualizes code logic and execution flow.
 It helps developers better understand, analyze, and debug their programs by transforming complex code structures into intuitive visual representations.
@@ -27,10 +27,17 @@ This project is built with:
 * React
 * TypeScript
 * Electron
+* CodeMirror 6 (file viewer)
+
+## Features
+
+* Project folder import and tree explorer
+* File viewer with syntax highlighting (CodeMirror)
+* Binary files are detected and skipped in the viewer
 
 ---
 
-## 📦 Requirements (for development)
+## Requirements (for development)
 
 To work on the project locally, you need:
 
@@ -39,7 +46,7 @@ To work on the project locally, you need:
 
 ---
 
-## 🚀 Installation (for developers)
+## Installation (for developers)
 
 From the project root:
 
@@ -52,7 +59,7 @@ This installs all dependencies required for development.
 
 ---
 
-## 🧪 Run in development mode
+## Run in development mode
 
 This launches the app with hot-reload (recommended while coding):
 
@@ -64,7 +71,7 @@ Changes in the code will automatically refresh the application.
 
 ---
 
-## 🏗️ Build the application (create a real program)
+## Build the application (create a real program)
 
 To generate a production version of the application:
 
@@ -97,7 +104,7 @@ On Linux, you will typically get:
 
 ---
 
-## ▶️ Run the built application (Linux)
+## Run the built application (Linux)
 
 ### Option 1 — AppImage (recommended)
 
@@ -121,7 +128,7 @@ cd app/release/0.0.1/linux-unpacked
 
 ---
 
-## 🧹 Clean build files (after testing)
+## Clean build files (after testing)
 
 To remove all generated build artifacts and clean the project:
 
@@ -141,7 +148,7 @@ This does **not** delete your source code or dependencies.
 
 ---
 
-## 📂 Project Scripts Summary
+## Project Scripts Summary
 
 | Command           | Description                          |
 | ----------------- | ------------------------------------ |
@@ -153,13 +160,13 @@ This does **not** delete your source code or dependencies.
 
 ---
 
-## 📜 License
+## License
 
-This project is open-source. License information will be added soon.
+Licensed under the MIT License. See `LICENSE.md`.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions, ideas, and feedback are welcome!
 Feel free to open issues or pull requests on the GitHub repository.
