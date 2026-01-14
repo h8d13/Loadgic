@@ -17,6 +17,8 @@ function App() {
   const [panelWidth, setPanelWidth] = useState(320)
   const [projectRoot, setProjectRoot] = useState<string | null>(null)
   const [projectTree, setProjectTree] = useState<ProjectNode | null>(null)
+  const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
+  const [selectedFileContent, setSelectedFileContent] = useState<string | null>(null)
   const isResizingRef = useRef(false)
   const panelWidthRef = useRef(panelWidth)
   const isPanelOpenRef = useRef(isPanelOpen)
@@ -110,6 +112,18 @@ function App() {
     if (!result) return
     setProjectRoot(result.rootPath)
     setProjectTree(result.tree)
+    setSelectedFilePath(null)
+    setSelectedFileContent(null)
+  }
+
+  async function handleSelectFile(filePath: string) {
+    setSelectedFilePath(filePath)
+    const content = await window.loadgic?.readFile?.(filePath)
+    setSelectedFileContent(content ?? null)
+  }
+
+  function getBaseName(filePath: string) {
+    return filePath.split(/[/\\\\]/).pop() ?? filePath
   }
 
   return (
@@ -139,6 +153,8 @@ function App() {
           projectRoot={projectRoot}
           projectTree={projectTree}
           onOpenProject={openProject}
+          onSelectFile={handleSelectFile}
+          selectedFilePath={selectedFilePath}
         />
         <div
           className="sidepanel-resizer"
@@ -156,7 +172,18 @@ function App() {
         </button>
 
         <div className="content">
-          <img className="content-watermark" src={logoMark} alt="" />
+          {activeView === 'files' && selectedFilePath ? (
+            <div className="file-viewer">
+              <div className="file-viewer-header">
+                {getBaseName(selectedFilePath ?? '')}
+              </div>
+              <pre className="file-viewer-body">
+                {selectedFileContent ?? 'Unsupported or binary file.'}
+              </pre>
+            </div>
+          ) : (
+            <img className="content-watermark" src={logoMark} alt="" />
+          )}
         </div>
       </div>
     </div>

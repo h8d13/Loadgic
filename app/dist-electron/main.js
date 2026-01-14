@@ -1,13 +1,32 @@
 import { app, ipcMain, BrowserWindow, dialog } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 if (process.platform === "linux") {
   app.commandLine.appendSwitch("disable-features", "WaylandWpColorManagerV1");
 }
 let mainWindow = null;
 const IGNORED_DIRS = /* @__PURE__ */ new Set([".git", "node_modules"]);
+let currentProjectRoot = null;
+const BINARY_EXTENSIONS = /* @__PURE__ */ new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".bmp",
+  ".ico",
+  ".tiff",
+  ".pdf",
+  ".zip",
+  ".rar",
+  ".7z",
+  ".mp4",
+  ".mov",
+  ".mp3",
+  ".wav"
+]);
 ipcMain.handle("window:minimize", () => {
   mainWindow?.minimize();
 });
@@ -64,8 +83,27 @@ ipcMain.handle("dialog:open-project", async () => {
     return null;
   }
   const rootPath = result.filePaths[0];
+  currentProjectRoot = rootPath;
   const tree = await readProjectTree(rootPath);
   return { rootPath, tree };
+});
+ipcMain.handle("file:read", async (_event, filePath) => {
+  if (!currentProjectRoot) return null;
+  const resolvedRoot = path.resolve(currentProjectRoot);
+  const resolvedFile = path.resolve(filePath);
+  if (!resolvedFile.startsWith(resolvedRoot + path.sep)) {
+    return null;
+  }
+  if (BINARY_EXTENSIONS.has(path.extname(resolvedFile).toLowerCase())) {
+    return null;
+  }
+  try {
+    const buffer = await readFile(resolvedFile);
+    if (buffer.includes(0)) return null;
+    return buffer.toString("utf-8");
+  } catch {
+    return null;
+  }
 });
 function createWindow() {
   const iconPath = process.env.VITE_DEV_SERVER_URL ? path.join(__dirname$1, "../public/app-icon.png") : path.join(__dirname$1, "../dist/app-icon.png");

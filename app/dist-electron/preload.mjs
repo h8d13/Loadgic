@@ -5,6 +5,7 @@ electron.contextBridge.exposeInMainWorld("loadgic", {
   close: () => electron.ipcRenderer.invoke("window:close"),
   toggleFullscreen: () => electron.ipcRenderer.invoke("window:toggle-fullscreen"),
   openProject: () => electron.ipcRenderer.invoke("dialog:open-project"),
+  readFile: (filePath) => electron.ipcRenderer.invoke("file:read", filePath),
   onMainMessage: (handler) => {
     const listener = (_event, message) => {
       handler(message);

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readdir } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import type { Dirent } from 'node:fs'
 import type { DirNode, TreeNode } from '@/types/project'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -14,6 +14,25 @@ if (process.platform === 'linux') {
 let mainWindow: BrowserWindow | null = null
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules'])
+let currentProjectRoot: string | null = null
+const BINARY_EXTENSIONS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.bmp',
+  '.ico',
+  '.tiff',
+  '.pdf',
+  '.zip',
+  '.rar',
+  '.7z',
+  '.mp4',
+  '.mov',
+  '.mp3',
+  '.wav',
+])
 
 ipcMain.handle('window:minimize', () => {
   mainWindow?.minimize()
@@ -59,11 +78,9 @@ async function readProjectTree(dirPath: string): Promise<DirNode> {
             children: await walk(entryPath),
           }
         }
-
         return { name: entry.name, path: entryPath, type: 'file' }
       })
     )
-
     return children
   }
 
@@ -85,8 +102,28 @@ ipcMain.handle('dialog:open-project', async () => {
     return null
   }
   const rootPath = result.filePaths[0]
+  currentProjectRoot = rootPath
   const tree = await readProjectTree(rootPath)
   return { rootPath, tree }
+})
+
+ipcMain.handle('file:read', async (_event, filePath: string) => {
+  if (!currentProjectRoot) return null
+  const resolvedRoot = path.resolve(currentProjectRoot)
+  const resolvedFile = path.resolve(filePath)
+  if (!resolvedFile.startsWith(resolvedRoot + path.sep)) {
+    return null
+  }
+  if (BINARY_EXTENSIONS.has(path.extname(resolvedFile).toLowerCase())) {
+    return null
+  }
+  try {
+    const buffer = await readFile(resolvedFile)
+    if (buffer.includes(0)) return null
+    return buffer.toString('utf-8')
+  } catch {
+    return null
+  }
 })
 
 function createWindow() {

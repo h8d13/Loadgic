@@ -9,14 +9,18 @@ type Props = {
   projectRoot?: string | null
   projectTree?: ProjectNode | null
   onOpenProject?: () => void
+  onSelectFile?: (filePath: string) => void
+  selectedFilePath?: string | null
 }
 
 type TreeProps = {
   node: ProjectNode
   level?: number
+  onSelectFile?: (filePath: string) => void
+  selectedFilePath?: string | null
 }
 
-function TreeNode({ node, level = 0 }: TreeProps) {
+function TreeNode({ node, level = 0, onSelectFile, selectedFilePath }: TreeProps) {
   const [isOpen, setIsOpen] = useState(level === 0)
   const isDir = node.type === 'dir'
   const hasChildren = !!node.children?.length
@@ -29,9 +33,17 @@ function TreeNode({ node, level = 0 }: TreeProps) {
   return (
     <div className="file-tree-node" style={{ paddingLeft: `${level * 8}px` }}>
       <div
-        className={`file-tree-label ${node.type}`}
+        className={`file-tree-label ${node.type} ${
+          node.path === selectedFilePath ? 'selected' : ''
+        }`}
         role={isDir ? 'button' : undefined}
-        onClick={toggle}
+        onClick={() => {
+          if (isDir) {
+            toggle()
+          } else {
+            onSelectFile?.(node.path)
+          }
+        }}
         onKeyDown={(event) => {
           if (!isDir || !hasChildren) return
           if (event.key === 'Enter' || event.key === ' ') {
@@ -46,7 +58,13 @@ function TreeNode({ node, level = 0 }: TreeProps) {
       </div>
       {isDir && isOpen && hasChildren
         ? node.children?.map((child) => (
-            <TreeNode key={child.path} node={child} level={level + 1} />
+            <TreeNode
+              key={child.path}
+              node={child}
+              level={level + 1}
+              onSelectFile={onSelectFile}
+              selectedFilePath={selectedFilePath}
+            />
           ))
         : null}
     </div>
@@ -60,6 +78,8 @@ export default function SidePanel({
   projectRoot,
   projectTree,
   onOpenProject,
+  onSelectFile,
+  selectedFilePath,
 }: Props) {
   return (
     <aside className={`sidepanel ${isOpen ? 'open' : 'closed'}`}>
@@ -90,7 +110,11 @@ export default function SidePanel({
             )}
             {projectTree ? (
               <div className="file-tree">
-                <TreeNode node={projectTree} />
+                <TreeNode
+                  node={projectTree}
+                  onSelectFile={onSelectFile}
+                  selectedFilePath={selectedFilePath}
+                />
               </div>
             ) : null}
             <div className="files-footer-space" />

@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('loadgic', {
   close: () => ipcRenderer.invoke('window:close'),
   toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
   openProject: () => ipcRenderer.invoke('dialog:open-project'),
+  readFile: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
   onMainMessage: (handler: (message: string) => void) => {
     const listener = (_event: IpcRendererEvent, message: string) => {
       handler(message)
