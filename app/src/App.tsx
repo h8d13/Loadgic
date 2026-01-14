@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
 import appLogo from './assets/logo/logo_512_512.png'
+import logoMark from './assets/logo/logo_svg.svg'
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
@@ -155,10 +156,7 @@ function App() {
         </button>
 
         <div className="content">
-          {activeView === 'logic' && <div>Logic View</div>}
-          {activeView === 'files' && <div>Files View</div>}
-          {activeView === 'run' && <div>Run View</div>}
-          {activeView === 'settings' && <div>Settings View</div>}
+          <img className="content-watermark" src={logoMark} alt="" />
         </div>
       </div>
     </div>
