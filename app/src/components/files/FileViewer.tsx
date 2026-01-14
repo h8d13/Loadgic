@@ -1,20 +1,7 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { javascript } from '@codemirror/lang-javascript'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { json } from '@codemirror/lang-json'
-import { markdown } from '@codemirror/lang-markdown'
-import { xml } from '@codemirror/lang-xml'
-import { yaml } from '@codemirror/lang-yaml'
-import { python } from '@codemirror/lang-python'
-import { java } from '@codemirror/lang-java'
-import { rust } from '@codemirror/lang-rust'
-import { php } from '@codemirror/lang-php'
-import { sql } from '@codemirror/lang-sql'
-import { StreamLanguage } from '@codemirror/language'
-import { shell } from '@codemirror/legacy-modes/mode/shell'
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
+import type { Extension } from '@codemirror/state'
 
 type Props = {
   content: string
@@ -26,58 +13,101 @@ function getExtension(filePath: string) {
   return match ? match[1] : ''
 }
 
-function getLanguageExtension(ext: string) {
+async function loadLanguageExtension(ext: string): Promise<Extension | null> {
   switch (ext) {
     case 'js':
     case 'jsx':
     case 'ts':
-    case 'tsx':
+    case 'tsx': {
+      const { javascript } = await import('@codemirror/lang-javascript')
       return javascript({ typescript: ext.includes('ts') })
+    }
     case 'html':
-    case 'htm':
+    case 'htm': {
+      const { html } = await import('@codemirror/lang-html')
       return html()
+    }
     case 'css':
     case 'scss':
-    case 'less':
+    case 'less': {
+      const { css } = await import('@codemirror/lang-css')
       return css()
-    case 'json':
+    }
+    case 'json': {
+      const { json } = await import('@codemirror/lang-json')
       return json()
+    }
     case 'md':
-    case 'markdown':
+    case 'markdown': {
+      const { markdown } = await import('@codemirror/lang-markdown')
       return markdown()
+    }
     case 'xml':
-    case 'svg':
+    case 'svg': {
+      const { xml } = await import('@codemirror/lang-xml')
       return xml()
+    }
     case 'yaml':
-    case 'yml':
+    case 'yml': {
+      const { yaml } = await import('@codemirror/lang-yaml')
       return yaml()
-    case 'py':
+    }
+    case 'py': {
+      const { python } = await import('@codemirror/lang-python')
       return python()
-    case 'java':
+    }
+    case 'java': {
+      const { java } = await import('@codemirror/lang-java')
       return java()
-    case 'rs':
+    }
+    case 'rs': {
+      const { rust } = await import('@codemirror/lang-rust')
       return rust()
-    case 'php':
+    }
+    case 'php': {
+      const { php } = await import('@codemirror/lang-php')
       return php()
-    case 'sql':
+    }
+    case 'sql': {
+      const { sql } = await import('@codemirror/lang-sql')
       return sql()
+    }
     case 'sh':
     case 'bash':
     case 'zsh':
-    case 'fish':
+    case 'fish': {
+      const { StreamLanguage } = await import('@codemirror/language')
+      const { shell } = await import('@codemirror/legacy-modes/mode/shell')
       return StreamLanguage.define(shell)
+    }
     default:
-      // Fallback to shell highlighting for unknown file types
-      return StreamLanguage.define(shell)
+      return null
   }
 }
 
 export default function FileViewer({ content, filePath }: Props) {
-  const extensions = useMemo(() => {
+  const [extensions, setExtensions] = useState<Extension[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+
     const ext = getExtension(filePath)
-    const lang = getLanguageExtension(ext)
-    return [lang]
+    loadLanguageExtension(ext).then((lang) => {
+      if (cancelled) return
+      setExtensions(lang ? [lang] : [])
+      setLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [filePath])
+
+  if (loading) {
+    return <div className="file-viewer-loading">Loading...</div>
+  }
 
   return (
     <CodeMirror

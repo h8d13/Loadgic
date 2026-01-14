@@ -1,10 +1,14 @@
 import Sidebar from './components/sidebar/ActivityBar'
 import SidePanel from './components/sidebar/SidePanel'
 import MenuBar from './components/MenuBar'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
-import FileViewer from './components/files/FileViewer'
+
+const FileViewer = lazy(() => import('./components/files/FileViewer'))
+
+//hreflang
+//system color theme
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
@@ -190,10 +194,12 @@ function App() {
                 {getBaseName(selectedFilePath ?? '')}
               </div>
               {selectedFileContent ? (
-                <FileViewer
-                  content={selectedFileContent}
-                  filePath={selectedFilePath}
-                />
+                <Suspense fallback={<div className="file-viewer-loading">Loading editor...</div>}>
+                  <FileViewer
+                    content={selectedFileContent}
+                    filePath={selectedFilePath}
+                  />
+                </Suspense>
               ) : (
                 <pre className="file-viewer-body">
                   Unsupported or binary file.
