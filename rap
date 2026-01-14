@@ -33,6 +33,12 @@ for i in "$@"; do
 		$x tsc && $x $v build && G_MESSAGES_DEBUG=all electron .
 		exit 0
 		;;
+		-e|--electron)
+		shift
+		go_to
+		electron .
+		exit 0
+		;;
 		-dd|--debug)
 		shift
 		go_to
