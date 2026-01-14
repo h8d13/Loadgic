@@ -12,6 +12,8 @@ import { java } from '@codemirror/lang-java'
 import { rust } from '@codemirror/lang-rust'
 import { php } from '@codemirror/lang-php'
 import { sql } from '@codemirror/lang-sql'
+import { StreamLanguage } from '@codemirror/language'
+import { shell } from '@codemirror/legacy-modes/mode/shell'
 import { useMemo } from 'react'
 
 type Props = {
@@ -59,8 +61,14 @@ function getLanguageExtension(ext: string) {
       return php()
     case 'sql':
       return sql()
+    case 'sh':
+    case 'bash':
+    case 'zsh':
+    case 'fish':
+      return StreamLanguage.define(shell)
     default:
-      return []
+      // Fallback to shell highlighting for unknown file types
+      return StreamLanguage.define(shell)
   }
 }
 
@@ -68,7 +76,7 @@ export default function FileViewer({ content, filePath }: Props) {
   const extensions = useMemo(() => {
     const ext = getExtension(filePath)
     const lang = getLanguageExtension(ext)
-    return Array.isArray(lang) ? [] : [lang]
+    return [lang]
   }, [filePath])
 
   return (
