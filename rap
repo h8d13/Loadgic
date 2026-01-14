@@ -30,7 +30,7 @@ for i in "$@"; do
 		-vi|--vite)
 		shift
 		go_to
-		$x tsc && $x $v build && electron .
+		$x tsc && $x $v build && G_MESSAGES_DEBUG=all electron .
 		exit 0
 		;;
 		-dd|--debug)
