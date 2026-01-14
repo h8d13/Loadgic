@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('loadgic', {
   minimize: () => ipcRenderer.invoke('window:minimize'),
   close: () => ipcRenderer.invoke('window:close'),
   toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
+  openProject: () => ipcRenderer.invoke('dialog:open-project'),
   onMainMessage: (handler: (message: string) => void) => {
     const listener = (_event: IpcRendererEvent, message: string) => {
       handler(message)

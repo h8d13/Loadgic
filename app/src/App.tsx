@@ -2,6 +2,7 @@ import Sidebar from './components/sidebar/ActivityBar'
 import SidePanel from './components/sidebar/SidePanel'
 import { useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
+import type { ProjectNode } from './types/project'
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
@@ -9,9 +10,11 @@ const COLLAPSE_THRESHOLD = 140
 const MIN_CONTENT_WIDTH = 200
 
 function App() {
-  const [activeView, setActiveView] = useState<ViewMode>('logic')
+  const [activeView, setActiveView] = useState<ViewMode>('files')
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelWidth, setPanelWidth] = useState(320)
+  const [projectRoot, setProjectRoot] = useState<string | null>(null)
+  const [projectTree, setProjectTree] = useState<ProjectNode | null>(null)
   const isResizingRef = useRef(false)
   const panelWidthRef = useRef(panelWidth)
   const isPanelOpenRef = useRef(isPanelOpen)
@@ -100,6 +103,13 @@ function App() {
     isResizingRef.current = true
   }
 
+  async function openProject() {
+    const result = await window.loadgic?.openProject?.()
+    if (!result) return
+    setProjectRoot(result.rootPath)
+    setProjectTree(result.tree)
+  }
+
   return (
     <div className="app">
       <div className="titlebar">
@@ -121,6 +131,9 @@ function App() {
           activeView={activeView}
           isOpen={isPanelOpen}
           onToggle={() => setIsPanelOpen((open) => !open)}
+          projectRoot={projectRoot}
+          projectTree={projectTree}
+          onOpenProject={openProject}
         />
         <div
           className="sidepanel-resizer"

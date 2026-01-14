@@ -1,6 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readdir } from 'node:fs/promises'
+import type { Dirent } from 'node:fs'
+import type { DirNode, TreeNode } from '@/types/project'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Disable Wayland color management protocol (wp_color_manager_v1) to prevent
@@ -9,6 +12,8 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('disable-features', 'WaylandWpColorManagerV1')
 }
 let mainWindow: BrowserWindow | null = null
+
+const IGNORED_DIRS = new Set(['.git', 'node_modules'])
 
 ipcMain.handle('window:minimize', () => {
   mainWindow?.minimize()
@@ -21,6 +26,67 @@ ipcMain.handle('window:close', () => {
 ipcMain.handle('window:toggle-fullscreen', () => {
   if (!mainWindow) return
   mainWindow.setFullScreen(!mainWindow.isFullScreen())
+})
+
+// Recursively read a directory and build a project tree
+async function readProjectTree(dirPath: string): Promise<DirNode> {
+  async function walk(currentPath: string): Promise<TreeNode[]> {
+    let entries: Dirent[]
+    try {
+      entries = await readdir(currentPath, { withFileTypes: true })
+    } catch {
+      return []
+    }
+
+    const sortedEntries = entries
+      .filter((entry) => !IGNORED_DIRS.has(entry.name))
+      .sort((a, b) => {
+        if (a.isDirectory() !== b.isDirectory()) {
+          return a.isDirectory() ? -1 : 1
+        }
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      })
+
+    const children: TreeNode[] = await Promise.all(
+      sortedEntries.map(async (entry): Promise<TreeNode> => {
+        const entryPath = path.join(currentPath, entry.name)
+
+        if (entry.isDirectory()) {
+          return {
+            name: entry.name,
+            path: entryPath,
+            type: 'dir',
+            children: await walk(entryPath),
+          }
+        }
+
+        return { name: entry.name, path: entryPath, type: 'file' }
+      })
+    )
+
+    return children
+  }
+
+  return {
+    name: path.basename(dirPath),
+    path: dirPath,
+    type: 'dir',
+    children: await walk(dirPath),
+  }
+}
+
+// Handle open directory selector
+ipcMain.handle('dialog:open-project', async () => {
+  if (!mainWindow) return null
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+  })
+  if (result.canceled || result.filePaths.length === 0) {
+    return null
+  }
+  const rootPath = result.filePaths[0]
+  const tree = await readProjectTree(rootPath)
+  return { rootPath, tree }
 })
 
 function createWindow() {

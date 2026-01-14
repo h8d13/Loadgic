@@ -315,3 +315,90 @@ body {
   min-height: 0;
   padding: 12px;
 }
+
+/* =========================
+   FILES PANEL
+========================= */
+.files-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.files-open-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+  background: #111827;
+  border: 1px solid #1f2933;
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+
+.files-open-btn:hover {
+  background: #1f2933;
+}
+
+.files-root,
+.files-empty {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.file-tree {
+  font-size: 14px;
+  color: #e5e7eb;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 6px 4px 12px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #1f2933 transparent;
+}
+
+.files-footer-space {
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.file-tree-node {
+  display: block;
+}
+
+.file-tree-label {
+  padding: 2px 6px 2px 4px;
+  white-space: nowrap;
+  border-radius: 6px;
+  opacity: 0.92;
+}
+
+.file-tree-label.dir {
+  color: #cbd5f5;
+  cursor: default;
+}
+
+.file-tree-label.file {
+  color: #e5e7eb;
+  cursor: default;
+}
+
+.file-tree-label:hover {
+  background: #111827;
+  opacity: 1;
+}
+
+.file-tree::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-tree::-webkit-scrollbar-thumb {
+  background-color: #1f2933;
+  border-radius: 999px;
+}
+
+.file-tree::-webkit-scrollbar-track {
+  background: transparent;
+}
