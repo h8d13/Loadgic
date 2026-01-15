@@ -1,12 +1,35 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { dracula } from '@uiw/codemirror-theme-dracula'
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github'
+import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized'
+import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage } from '@codemirror/language'
 import { useState, useEffect } from 'react'
 import type { Extension } from '@codemirror/state'
+import { useTheme } from '../../theme/ThemeProvider'
 
 type Props = {
   content: string
   filePath: string
+}
+
+const nord = nordInit({})
+
+function getEditorTheme(editorTheme: string, isDark: boolean): Extension {
+  switch (editorTheme) {
+    case 'dracula':
+      return dracula
+    case 'github':
+      return isDark ? githubDark : githubLight
+    case 'solarized':
+      return isDark ? solarizedDark : solarizedLight
+    case 'nord':
+      return nord
+    case 'oneDark':
+    default:
+      return oneDark
+  }
 }
 
 function getExtension(filePath: string) {
@@ -86,6 +109,7 @@ async function loadLanguageExtension(ext: string): Promise<Extension | null> {
 }
 
 export default function FileViewer({ content, filePath }: Props) {
+  const { theme, editorTheme } = useTheme()
   const [extensions, setExtensions] = useState<Extension[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -112,7 +136,7 @@ export default function FileViewer({ content, filePath }: Props) {
   return (
     <CodeMirror
       value={content}
-      theme={oneDark}
+      theme={getEditorTheme(editorTheme, theme === 'dark')}
       extensions={extensions}
       readOnly
       editable={false}
