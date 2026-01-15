@@ -1,5 +1,6 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { StreamLanguage } from '@codemirror/language'
 import { useState, useEffect } from 'react'
 import type { Extension } from '@codemirror/state'
 
@@ -76,7 +77,6 @@ async function loadLanguageExtension(ext: string): Promise<Extension | null> {
     case 'bash':
     case 'zsh':
     case 'fish': {
-      const { StreamLanguage } = await import('@codemirror/language')
       const { shell } = await import('@codemirror/legacy-modes/mode/shell')
       return StreamLanguage.define(shell)
     }
