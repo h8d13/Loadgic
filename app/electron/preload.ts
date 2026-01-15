@@ -12,6 +12,10 @@ contextBridge.exposeInMainWorld('loadgic', {
   maximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),
   toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
+  // Settings window
+  openSettingsWindow: () => ipcRenderer.invoke('window:open-settings'),
+  minimizeSettings: () => ipcRenderer.invoke('settings:minimize'),
+  closeSettings: () => ipcRenderer.invoke('settings:close'),
   // Your zoom controls
   zoomIn: () => ipcRenderer.invoke('view:zoom-in') as Promise<number>,
   zoomOut: () => ipcRenderer.invoke('view:zoom-out') as Promise<number>,

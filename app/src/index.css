@@ -99,6 +99,7 @@ body {
   font-weight: 500;
   font-size: 15px;
   line-height: 1;
+  margin-left: 8px;
   -webkit-app-region: drag;
 }
 
@@ -656,4 +657,302 @@ body {
 
 .file-tree::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* =========================
+   SETTINGS PAGE
+========================= */
+.settings-shell {
+  width: 100%;
+  height: 100%;
+  background: #0f1115;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-titlebar {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #0f1115;
+  border-bottom: 1px solid #1f2933;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.settings-title {
+  font-size: 14px;
+  font-weight: 600;
+  -webkit-app-region: drag;
+}
+
+.settings-window-controls {
+  display: flex;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.settings-window-controls button {
+  width: 32px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt, #0b0d11);
+  border: 1px solid var(--border, #1f2933);
+  color: var(--text, #e5e7eb);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-window-controls button:hover {
+  background-color: var(--hover, #1f2933);
+  border-color: var(--border-strong, #2a3440);
+}
+
+.settings-window-controls .close:hover {
+  background-color: var(--accent, #dc2626);
+  border-color: var(--accent, #dc2626);
+}
+
+.settings-page {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+
+.settings-section {
+  border: 1px solid #1f2933;
+  background: #0b0d11;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.settings-section-title {
+  font-size: 12px;
+  color: #9ca3af;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #e5e7eb;
+  padding: 6px 0;
+}
+
+.settings-row input[type='checkbox'] {
+  accent-color: var(--border-strong, #2a3440);
+}
+
+.settings-row select {
+  background: var(--bg-panel, #111827);
+  color: var(--text, #e5e7eb);
+  border: 1px solid var(--border, #1f2933);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.settings-row select:focus-visible,
+.window-controls button:focus-visible,
+.settings-window-controls button:focus-visible {
+  outline: 2px solid var(--border-strong, #2a3440);
+  outline-offset: 2px;
+}
+
+.settings-toggle {
+  background: var(--bg-panel, #111827);
+  border: 1px solid var(--border, #1f2933);
+  color: var(--text, #e5e7eb);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.settings-toggle:hover {
+  background: var(--hover, #1f2933);
+}
+
+/* =========================
+   CONTEXT MENU
+========================= */
+.context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--bg-alt, #0b0d11);
+  border: 1px solid var(--border, #1f2933);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+}
+
+.context-menu-item {
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text, #e5e7eb);
+  text-align: left;
+  font-size: 12px;
+  cursor: default;
+  border-radius: 4px;
+}
+
+.context-menu-item:hover {
+  background: var(--hover, #1f2933);
+}
+
+/* =========================
+   THEME OVERRIDES
+========================= */
+:root {
+  --bg: #0f1115;
+  --bg-alt: #0b0d11;
+  --bg-panel: #111827;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border: #1f2933;
+  --border-strong: #2a3440;
+  --hover: #1f2933;
+  --accent: #dc2626;
+}
+
+[data-theme='light'] {
+  --bg: #f6f7f9;
+  --bg-alt: #ffffff;
+  --bg-panel: #eef1f5;
+  --text: #111827;
+  --text-muted: #3f4a5a;
+  --border: #d1d5db;
+  --border-strong: #c4cbd6;
+  --hover: #e2e8f0;
+  --accent: #dc2626;
+}
+
+body,
+#root,
+.app,
+.titlebar,
+.main,
+.content,
+.settings-shell,
+.settings-titlebar {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.sidebar,
+.sidepanel,
+.file-viewer-body,
+.file-viewer .cm-editor,
+.settings-section {
+  background-color: var(--bg-alt);
+  border-color: var(--border);
+}
+
+.files-open-btn,
+.settings-row select {
+  background: var(--bg-panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.titlebar,
+.sidepanel,
+.sidebar,
+.settings-titlebar {
+  border-color: var(--border);
+}
+
+.menu-btn,
+.sidepanel-title,
+.files-root,
+.files-empty,
+.file-viewer-header,
+.settings-section-title {
+  color: var(--text-muted);
+}
+
+.menu-btn:hover,
+.menu-btn.active,
+.sidepanel-toggle:hover,
+.sidepanel-handle:hover,
+.files-open-btn:hover,
+.file-tree-label:hover,
+.file-tree-label.selected {
+  background-color: var(--hover);
+  color: var(--text);
+}
+
+.window-controls button:hover,
+.settings-window-controls button:hover {
+  background-color: var(--hover);
+  border-color: var(--border-strong);
+}
+
+.window-controls .close:hover,
+.settings-window-controls .close:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sidepanel-resizer:hover::before {
+  background-color: var(--border-strong);
+}
+
+.file-viewer .cm-gutters {
+  border-right: 1px solid var(--border);
+}
+
+.file-tree,
+.file-tree-label.file,
+.file-tree-label.dir,
+.settings-row,
+.file-viewer-body {
+  color: var(--text);
+}
+
+[data-theme='light'] .file-tree-label.dir {
+  color: #1f2937;
+}
+
+[data-theme='light'] .file-tree-label.file {
+  color: #111827;
+}
+
+[data-theme='light'] .file-tree-label:hover,
+[data-theme='light'] .file-tree-label.selected {
+  background-color: #dbe4ee;
+}
+
+[data-theme='light'] .file-viewer .cm-editor,
+[data-theme='light'] .file-viewer-body {
+  background: var(--bg-alt);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+[data-theme='light'] .file-viewer .cm-scroller,
+[data-theme='light'] .file-viewer .cm-content,
+[data-theme='light'] .file-viewer .cm-gutters {
+  background: var(--bg-alt);
+  color: var(--text);
+}
+
+[data-theme='light'] .file-viewer .cm-gutters {
+  border-right-color: var(--border);
 }

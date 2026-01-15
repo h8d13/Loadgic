@@ -10,6 +10,10 @@ declare global {
       maximize: () => Promise<void>
       close: () => Promise<void>
       toggleFullscreen: () => Promise<void>
+      // Settings window
+      openSettingsWindow: () => Promise<void>
+      minimizeSettings: () => Promise<void>
+      closeSettings: () => Promise<void>
       // Your zoom controls
       zoomIn: () => Promise<number>
       zoomOut: () => Promise<number>
