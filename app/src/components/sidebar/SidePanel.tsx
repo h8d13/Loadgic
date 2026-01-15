@@ -54,7 +54,7 @@ function TreeNode({ node, level = 0, onSelectFile, selectedFilePath }: TreeProps
         tabIndex={isDir ? 0 : -1}
         aria-expanded={isDir ? isOpen : undefined}
       >
-        {isDir ? (isOpen ? '▾' : '▸') : '•'} {node.name}
+        {isDir ? (isOpen ? '▾' : '▸') : '•'} {node.name}{isDir ? '/' : ''}
       </div>
       {isDir && isOpen && hasChildren
         ? node.children?.map((child) => (

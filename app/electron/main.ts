@@ -277,6 +277,7 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
+    currentZoom = mainWindow?.webContents.getZoomFactor() ?? 1.0
   })
 
   mainWindow.on('resize', () => {
