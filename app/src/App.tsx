@@ -235,7 +235,6 @@ function App() {
         <SidePanel
           activeView={activeView}
           isOpen={isPanelOpen}
-          onToggle={() => setIsPanelOpen((open) => !open)}
           projectRoot={projectRoot}
           projectTree={projectTree}
           onOpenProject={openProject}
@@ -260,27 +259,21 @@ function App() {
         <div className="content">
           {activeView === 'files' && selectedFilePath ? (
             <div className="file-viewer">
-              <div className="file-viewer-header">
-                {selectedFilePath ? (
-                  <>
-                    <button
-                      className={`file-viewer-copy${copied ? ' copied' : ''}`}
-                      onClick={() => copyPathToClipboard(selectedFilePath)}
-                      aria-label="Copy full path"
-                      title="Copy full path"
-                      type="button"
-                    >
-                      <span className={`file-viewer-copy-icon${copied ? ' check' : ''}`}>{copied ? '✓' : '⧉'}</span>
-                    </button>
-                    <span className="file-viewer-path">
-                      {splitPath(selectedFilePath).dir}
-                      {splitPath(selectedFilePath).dir ? '/' : ''}
-                    </span>
-                    <span className="file-viewer-name">
-                      {splitPath(selectedFilePath).name}
-                    </span>
-                  </>
-                ) : null}
+              <div
+                className="file-viewer-header"
+                onClick={() => copyPathToClipboard(selectedFilePath)}
+                title="Copy full path"
+              >
+                <span className={`file-viewer-copy${copied ? ' copied' : ''}`}>
+                  <span className={`file-viewer-copy-icon${copied ? ' check' : ''}`}>{copied ? '✓' : '⧉'}</span>
+                </span>
+                <span className="file-viewer-path">
+                  {splitPath(selectedFilePath).dir}
+                  {splitPath(selectedFilePath).dir ? '/' : ''}
+                </span>
+                <span className="file-viewer-name">
+                  {splitPath(selectedFilePath).name}
+                </span>
               </div>
               {selectedFileContent?.kind === 'text' ? (
                 <Suspense fallback={<div className="file-viewer-loading">Loading editor...</div>}>

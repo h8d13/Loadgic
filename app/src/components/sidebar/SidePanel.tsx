@@ -5,7 +5,6 @@ import type { ProjectNode } from '../../types/project'
 type Props = {
   activeView: ViewMode
   isOpen: boolean
-  onToggle: () => void
   projectRoot?: string | null
   projectTree?: ProjectNode | null
   onOpenProject?: () => void
@@ -74,7 +73,6 @@ function TreeNode({ node, level = 0, onSelectFile, selectedFilePath }: TreeProps
 export default function SidePanel({
   activeView,
   isOpen,
-  onToggle,
   projectRoot,
   projectTree,
   onOpenProject,
@@ -85,15 +83,6 @@ export default function SidePanel({
     <aside className={`sidepanel ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidepanel-header">
         <div className="sidepanel-title">{activeView.toUpperCase()}</div>
-        <button
-          className="sidepanel-toggle"
-          onClick={onToggle}
-          aria-label={isOpen ? 'Hide panel' : 'Show panel'}
-          title={isOpen ? 'Hide panel' : 'Show panel'}
-        >
-          <span className="sidepanel-toggle-icon">{isOpen ? '<' : '>'}</span>
-          <span className="sidepanel-toggle-text">{isOpen ? 'Hide' : 'Show'}</span>
-        </button>
       </div>
 
       <div className="sidepanel-body">
