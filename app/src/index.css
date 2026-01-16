@@ -467,6 +467,7 @@ body {
   border-radius: 6px;
   max-width: 100%;
   cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .file-viewer-copy {
