@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('loadgic', {
   zoomReset: () => ipcRenderer.invoke('view:zoom-reset') as Promise<number>,
   // Debug controls
   reload: () => ipcRenderer.invoke('debug:reload'),
+  hardReload: () => ipcRenderer.invoke('debug:hard-reload'),
   openDevTools: () => ipcRenderer.invoke('debug:open-devtools'),
   // Your generic event listener
   on,

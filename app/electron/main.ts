@@ -164,6 +164,7 @@ handle('view:zoom-reset', () => {
 
 // Debug operations
 handle('debug:reload', () => mainWindow?.webContents.reload())
+handle('debug:hard-reload', () => mainWindow?.webContents.reloadIgnoringCache())
 handle('debug:open-devtools', () => mainWindow?.webContents.openDevTools())
 
 // Upstream: Recursively read a directory and build a project tree

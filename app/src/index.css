@@ -369,8 +369,10 @@ body {
 .sidepanel-body {
   padding: 12px;
   padding-left: 24px;
-  overflow: auto;
+  overflow: hidden;
   min-height: 0;
+  min-width: 0;
+  flex: 1;
 }
 
 .sidepanel-resizer {
@@ -574,6 +576,8 @@ body {
   flex-direction: column;
   gap: 10px;
   height: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .files-open-btn {
@@ -604,6 +608,7 @@ body {
   overflow: auto;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   padding: 6px 4px 12px 0;
   scrollbar-width: thin;
   scrollbar-color: #1a1a1a transparent;

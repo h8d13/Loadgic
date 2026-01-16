@@ -101,7 +101,7 @@ export default function SidePanel({
         {activeView === 'files' && (
           <div className="files-panel">
             <button className="files-open-btn" onClick={onOpenProject}>
-              Open project folder
+              Open a folder
             </button>
             {projectRoot ? (
               <div className="files-root">{projectRoot}</div>

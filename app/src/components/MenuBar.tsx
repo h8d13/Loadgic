@@ -41,6 +41,10 @@ export default function MenuBar() {
     window.loadgic?.reload()
   }, [])
 
+  const handleHardReload = useCallback(() => {
+    window.loadgic?.hardReload()
+  }, [])
+
   const handleOpenDevTools = useCallback(() => {
     window.loadgic?.openDevTools()
   }, [])
@@ -61,7 +65,9 @@ export default function MenuBar() {
     {
       label: 'Debug',
       items: [
-        { label: 'Reload', shortcut: 'Ctrl+Shift+R', action: handleReload },
+        { label: 'Reload', shortcut: 'Ctrl+R', action: handleReload },
+        { label: 'Hard Reload', shortcut: 'Ctrl+Shift+R', action: handleHardReload },
+        { separator: true, label: '' },
         { label: 'Dev Tools', shortcut: 'Ctrl+Shift+I', action: handleOpenDevTools },
       ],
     },
@@ -99,6 +105,9 @@ export default function MenuBar() {
         handleFullscreen()
       } else if (ctrl && e.shiftKey && e.key === 'R') {
         e.preventDefault()
+        handleHardReload()
+      } else if (ctrl && !e.shiftKey && e.key === 'r') {
+        e.preventDefault()
         handleReload()
       } else if (ctrl && e.shiftKey && e.key === 'I') {
         e.preventDefault()
@@ -110,7 +119,7 @@ export default function MenuBar() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleTogglePanel, handleZoomIn, handleZoomOut, handleZoomReset, handleFullscreen, handleReload, handleOpenDevTools])
+  }, [handleTogglePanel, handleZoomIn, handleZoomOut, handleZoomReset, handleFullscreen, handleReload, handleHardReload, handleOpenDevTools])
 
   function handleMenuClick(label: string) {
     setOpenMenu(openMenu === label ? null : label)
