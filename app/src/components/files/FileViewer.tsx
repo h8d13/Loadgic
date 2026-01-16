@@ -7,7 +7,7 @@ import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Extension } from '@codemirror/state'
-import { useTheme } from '@/theme/useTheme'
+import { useSettings } from '@/settings/useSettings'
 import { createMarkerExtensions, cycleMarker, type MarkerState } from './breakpointGutter'
 
 type Props = {
@@ -173,7 +173,7 @@ const knownFilenames: Record<string, string> = {
 }
 
 export default function FileViewer({ content, filePath, onMarkersChange }: Props) {
-  const { theme, editorTheme } = useTheme()
+  const { theme, editorTheme } = useSettings()
   const [langExtension, setLangExtension] = useState<Extension | null>(null)
   const [loading, setLoading] = useState(true)
   const [markers, setMarkers] = useState<MarkerState>(

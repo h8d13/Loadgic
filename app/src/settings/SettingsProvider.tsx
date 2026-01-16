@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { EDITOR_THEMES, type EditorTheme } from './constants'
-import { ThemeContext } from './ThemeContext'
+import { SettingsContext } from './SettingsContext'
 
 type Theme = 'dark' | 'light'
 
@@ -18,9 +18,15 @@ function getInitialEditorTheme(): EditorTheme {
   return 'oneDark'
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+function getInitialShowHidden(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem('loadgic:showHidden') === 'true'
+}
+
+export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [editorTheme, setEditorTheme] = useState<EditorTheme>(getInitialEditorTheme)
+  const [showHidden, setShowHidden] = useState(getInitialShowHidden)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -30,6 +36,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     window.localStorage.setItem('loadgic:editorTheme', editorTheme)
   }, [editorTheme])
+
+  useEffect(() => {
+    window.localStorage.setItem('loadgic:showHidden', String(showHidden))
+  }, [showHidden])
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
@@ -43,6 +53,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           setEditorTheme(event.newValue as EditorTheme)
         }
       }
+      if (event.key === 'loadgic:showHidden') {
+        setShowHidden(event.newValue === 'true')
+      }
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
@@ -55,9 +68,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       toggleTheme: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')),
       editorTheme,
       setEditorTheme,
+      showHidden,
+      setShowHidden,
     }),
-    [theme, editorTheme]
+    [theme, editorTheme, showHidden]
   )
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
 }

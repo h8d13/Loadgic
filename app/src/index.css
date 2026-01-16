@@ -790,6 +790,7 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-bottom: 10px;
+  user-select: none;
 }
 
 .settings-row {
@@ -800,6 +801,7 @@ body {
   font-size: 13px;
   color: #e5e7eb;
   padding: 6px 0;
+  user-select: none;
 }
 
 .settings-row input[type='checkbox'] {

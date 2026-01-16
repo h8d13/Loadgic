@@ -3,12 +3,14 @@ import type { EditorTheme } from './constants'
 
 type Theme = 'dark' | 'light'
 
-export type ThemeContextValue = {
+export type SettingsContextValue = {
   theme: Theme
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
   editorTheme: EditorTheme
   setEditorTheme: (theme: EditorTheme) => void
+  showHidden: boolean
+  setShowHidden: (show: boolean) => void
 }
 
-export const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
+export const SettingsContext = createContext<SettingsContextValue | undefined>(undefined)

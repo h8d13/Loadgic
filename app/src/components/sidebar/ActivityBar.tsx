@@ -1,12 +1,6 @@
 import type { MouseEvent } from 'react'
-import type { ViewMode } from '../../types/view'
-
-import {
-  LogicIcon,
-  FilesIcon,
-  RunIcon,
-  SettingsIcon
-} from '../icons'
+import type { ViewMode } from '@/types/view'
+import { LogicIcon, FilesIcon, RunIcon, SettingsIcon } from '@/components/icons'
 
 interface SidebarProps {
   activeView: ViewMode

@@ -1,8 +1,8 @@
-import { useTheme } from '../theme/useTheme'
-import { EDITOR_THEMES } from '../theme/constants'
+import { useSettings } from '@/settings/useSettings'
+import { EDITOR_THEMES } from '@/settings/constants'
 
 function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useSettings()
   return (
     <button className="settings-toggle" onClick={toggleTheme} type="button">
       {theme === 'dark' ? 'On' : 'Off'}
@@ -11,7 +11,7 @@ function ThemeToggle() {
 }
 
 function EditorThemeSelect() {
-  const { editorTheme, setEditorTheme } = useTheme()
+  const { editorTheme, setEditorTheme } = useSettings()
   return (
     <select
       value={editorTheme}
@@ -23,6 +23,19 @@ function EditorThemeSelect() {
         </option>
       ))}
     </select>
+  )
+}
+
+function ShowHiddenToggle() {
+  const { showHidden, setShowHidden } = useSettings()
+  return (
+    <button
+      className="settings-toggle"
+      onClick={() => setShowHidden(!showHidden)}
+      type="button"
+    >
+      {showHidden ? 'On' : 'Off'}
+    </button>
   )
 }
 
@@ -49,6 +62,14 @@ export default function SettingsPage() {
           <label className="settings-row">
             <span>Syntax highlighting</span>
             <EditorThemeSelect />
+          </label>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Files</div>
+          <label className="settings-row">
+            <span>Show hidden files</span>
+            <ShowHiddenToggle />
           </label>
         </div>
       </div>

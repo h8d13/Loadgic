@@ -186,28 +186,18 @@ function App() {
   }
 
   function splitPath(filePath: string) {
-    const parts = filePath.split(/[/\\]/)
-    const name = parts.pop() ?? filePath
+    // Replace /home/username/ with ~/
+    const homeMatch = filePath.match(/^\/home\/[^/]+\//)
+    const displayPath = homeMatch ? filePath.replace(homeMatch[0], '~/') : filePath
+    const parts = displayPath.split(/[/\\]/)
+    const name = parts.pop() ?? displayPath
     const dir = parts.join('/')
     return { dir, name }
   }
 
   async function copyPathToClipboard(filePath: string) {
     if (!filePath) return
-    try {
-      await navigator.clipboard.writeText(filePath)
-    } catch {
-      // Fallback for restricted clipboard permissions
-      const textarea = document.createElement('textarea')
-      textarea.value = filePath
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.focus()
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-    }
+    await navigator.clipboard.writeText(filePath)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }

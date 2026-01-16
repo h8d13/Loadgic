@@ -1,21 +1,21 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
-import App from './App.tsx'
-import SettingsPage from './pages/SettingsPage.tsx'
-import { ThemeProvider } from './theme/ThemeProvider.tsx'
+import App from '@/App'
+import SettingsPage from '@/pages/SettingsPage'
+import { SettingsProvider } from '@/settings/SettingsProvider'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider>
+    <SettingsProvider>
       <HashRouter>
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </HashRouter>
-    </ThemeProvider>
+    </SettingsProvider>
   </React.StrictMode>,
 )
 
