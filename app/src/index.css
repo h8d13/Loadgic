@@ -563,13 +563,12 @@ body {
 }
 
 .file-viewer .cm-scroller {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
   font-size: 12px;
   scrollbar-width: thin;
   scrollbar-color: #1a1a1a transparent;
   background: #050505;
 }
+
 
 .file-viewer .cm-content {
   padding-top: 12px;
@@ -577,7 +576,7 @@ body {
 }
 
 .file-viewer .cm-gutters {
-  background: transparent;
+  background: var(--bg-alt);
   border-right: 1px solid #1a1a1a;
 }
 
@@ -591,10 +590,6 @@ body {
 }
 
 .file-viewer .cm-scroller::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.file-viewer .cm-scroller::-webkit-scrollbar-corner {
   background: transparent;
 }
 
