@@ -500,28 +500,32 @@ body {
 .file-viewer-copy {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
   background: transparent;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 4px;
-  font-size: 11px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.15s;
   flex-shrink: 0;
 }
 
 .file-viewer-copy:hover {
-  background: var(--bg);
   color: var(--text);
 }
 
-.file-viewer-copy-icon {
-  font-size: 12px;
+.file-viewer-copy.copied {
+  color: #22c55e;
 }
 
-.file-viewer-copy-label {
+.file-viewer-copy-icon {
+  font-size: 13px;
+}
+
+.file-viewer-copy-icon.check {
   font-size: 11px;
 }
 

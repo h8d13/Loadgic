@@ -24,6 +24,7 @@ function App() {
   const [projectTree, setProjectTree] = useState<ProjectNode | null>(null)
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
   const [selectedFileContent, setSelectedFileContent] = useState<FileContent | null>(null)
+  const [copied, setCopied] = useState(false)
   const [settingsMenu, setSettingsMenu] = useState<{ x: number; y: number } | null>(null)
   const settingsMenuRef = useRef<HTMLDivElement | null>(null)
   const isResizingRef = useRef(false)
@@ -207,6 +208,8 @@ function App() {
       document.execCommand('copy')
       document.body.removeChild(textarea)
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
 
   return (
@@ -261,14 +264,13 @@ function App() {
                 {selectedFilePath ? (
                   <>
                     <button
-                      className="file-viewer-copy"
+                      className={`file-viewer-copy${copied ? ' copied' : ''}`}
                       onClick={() => copyPathToClipboard(selectedFilePath)}
                       aria-label="Copy full path"
                       title="Copy full path"
                       type="button"
                     >
-                      <span className="file-viewer-copy-icon">⧉</span>
-                      <span className="file-viewer-copy-label">Copy</span>
+                      <span className={`file-viewer-copy-icon${copied ? ' check' : ''}`}>{copied ? '✓' : '⧉'}</span>
                     </button>
                     <span className="file-viewer-path">
                       {splitPath(selectedFilePath).dir}
