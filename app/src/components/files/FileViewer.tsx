@@ -5,10 +5,10 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github'
 import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized'
 import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage } from '@codemirror/language'
-import { useState, useEffect, useMemo, useReducer, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Extension } from '@codemirror/state'
 import { useTheme } from '@/theme/useTheme'
-import { createMarkerGutter, markerReducer, type MarkerState } from './breakpointGutter'
+import { createMarkerGutter, cycleMarker, type MarkerState } from './breakpointGutter'
 
 type Props = {
   content: string
@@ -119,7 +119,7 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
   const { theme, editorTheme } = useTheme()
   const [langExtension, setLangExtension] = useState<Extension | null>(null)
   const [loading, setLoading] = useState(true)
-  const [markers, dispatch] = useReducer(markerReducer, initialMarkerState)
+  const [markers, setMarkers] = useState<MarkerState>(initialMarkerState)
 
   useEffect(() => {
     let cancelled = false
@@ -139,7 +139,7 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
 
   // Reset markers when file changes
   useEffect(() => {
-    dispatch({ type: 'clear' })
+    setMarkers(initialMarkerState)
   }, [filePath])
 
   // Notify parent of changes
@@ -148,7 +148,7 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
   }, [markers, onMarkersChange])
 
   const handleCycle = useCallback((line: number) => {
-    dispatch({ type: 'cycle', line })
+    setMarkers((s) => cycleMarker(s, line))
   }, [])
 
   const markerGutter = useMemo(
