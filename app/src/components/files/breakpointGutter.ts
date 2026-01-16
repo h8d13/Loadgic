@@ -1,5 +1,5 @@
-import { RangeSet } from '@codemirror/state'
-import { GutterMarker, gutter } from '@codemirror/view'
+import { RangeSet, type Extension } from '@codemirror/state'
+import { GutterMarker, gutter, Decoration, EditorView } from '@codemirror/view'
 
 const marker = (cls: string, title: string) =>
   new (class extends GutterMarker {
@@ -16,6 +16,12 @@ const markers = {
   break: marker('cm-breakpoint-marker', 'Break'),
   exit: marker('cm-exit-marker', 'Exit'),
 }
+
+const lineTheme = EditorView.baseTheme({
+  '.cm-line-entry': { backgroundColor: 'rgba(34, 197, 94, 0.15)' },
+  '.cm-line-break': { backgroundColor: 'rgba(234, 179, 8, 0.15)' },
+  '.cm-line-exit': { backgroundColor: 'rgba(239, 68, 68, 0.15)' },
+})
 
 export type MarkerState = { entry: number | null; breaks: Set<number>; exits: Set<number> }
 
@@ -35,8 +41,8 @@ export function cycleMarker(state: MarkerState, line: number): MarkerState {
     : { entry, breaks: new Set(breaks).add(line), exits }
 }
 
-export function createMarkerGutter(state: MarkerState, onCycle: (line: number) => void) {
-  return gutter({
+export function createMarkerExtensions(state: MarkerState, onCycle: (line: number) => void): Extension {
+  const gutterExt = gutter({
     class: 'cm-breakpoint-gutter',
     markers: (view) => {
       const list: { from: number; to: number; value: GutterMarker }[] = []
@@ -53,4 +59,17 @@ export function createMarkerGutter(state: MarkerState, onCycle: (line: number) =
       mousedown: (view, block) => (onCycle(view.state.doc.lineAt(block.from).number), true),
     },
   })
+
+  const lineDecos = EditorView.decorations.compute([], (editorState) => {
+    const decos: ReturnType<typeof Decoration.line['range']>[] = []
+    for (let i = 1; i <= editorState.doc.lines; i++) {
+      const pos = editorState.doc.line(i).from
+      if (state.entry === i) decos.push(Decoration.line({ class: 'cm-line-entry' }).range(pos))
+      else if (state.breaks.has(i)) decos.push(Decoration.line({ class: 'cm-line-break' }).range(pos))
+      else if (state.exits.has(i)) decos.push(Decoration.line({ class: 'cm-line-exit' }).range(pos))
+    }
+    return Decoration.set(decos)
+  })
+
+  return [gutterExt, lineDecos, lineTheme]
 }

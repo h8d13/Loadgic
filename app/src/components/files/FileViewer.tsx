@@ -8,7 +8,7 @@ import { StreamLanguage } from '@codemirror/language'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Extension } from '@codemirror/state'
 import { useTheme } from '@/theme/useTheme'
-import { createMarkerGutter, cycleMarker, type MarkerState } from './breakpointGutter'
+import { createMarkerExtensions, cycleMarker, type MarkerState } from './breakpointGutter'
 
 type Props = {
   content: string
@@ -23,6 +23,9 @@ const initialMarkerState: MarkerState = {
   breaks: new Set(),
   exits: new Set(),
 }
+
+// Persist markers per file path
+const markerCache = new Map<string, MarkerState>()
 
 function getEditorTheme(editorTheme: string, isDark: boolean): Extension {
   switch (editorTheme) {
@@ -119,7 +122,9 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
   const { theme, editorTheme } = useTheme()
   const [langExtension, setLangExtension] = useState<Extension | null>(null)
   const [loading, setLoading] = useState(true)
-  const [markers, setMarkers] = useState<MarkerState>(initialMarkerState)
+  const [markers, setMarkers] = useState<MarkerState>(
+    () => markerCache.get(filePath) ?? initialMarkerState
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -137,10 +142,15 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
     }
   }, [filePath])
 
-  // Reset markers when file changes
+  // Load cached markers when file changes
   useEffect(() => {
-    setMarkers(initialMarkerState)
+    setMarkers(markerCache.get(filePath) ?? initialMarkerState)
   }, [filePath])
+
+  // Save markers to cache when they change
+  useEffect(() => {
+    markerCache.set(filePath, markers)
+  }, [filePath, markers])
 
   // Notify parent of changes
   useEffect(() => {
@@ -151,16 +161,16 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
     setMarkers((s) => cycleMarker(s, line))
   }, [])
 
-  const markerGutter = useMemo(
-    () => createMarkerGutter(markers, handleCycle),
+  const markerExtensions = useMemo(
+    () => createMarkerExtensions(markers, handleCycle),
     [markers, handleCycle]
   )
 
   const extensions = useMemo(() => {
-    const exts: Extension[] = [markerGutter]
+    const exts: Extension[] = [markerExtensions]
     if (langExtension) exts.push(langExtension)
     return exts
-  }, [langExtension, markerGutter])
+  }, [langExtension, markerExtensions])
 
   if (loading) {
     return <div className="file-viewer-loading">Loading...</div>
