@@ -154,8 +154,6 @@ const knownFilenames: Record<string, string> = {
   'gnumakefile': 'sh',
   'dockerfile': 'dockerfile',
   'containerfile': 'dockerfile',
-  'gemfile': 'rb',
-  'rakefile': 'rb',
   'cmakelists.txt': 'sh',
   '.bashrc': 'sh',
   '.zshrc': 'sh',
@@ -166,10 +164,8 @@ const knownFilenames: Record<string, string> = {
   '.dockerignore': 'gitignore',
   '.editorconfig': 'editorconfig',
   'LICENSE': 'text',
-  'license': 'text'
+  'license': 'text',
 }
-
-
 
 export default function FileViewer({ content, filePath, onMarkersChange }: Props) {
   const { theme, editorTheme } = useTheme()
@@ -197,7 +193,6 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
 
     loadLang()
       .then((lang) => {
-        console.log('[FileViewer] ext:', getExtension(filePath), 'lang loaded:', !!lang)
         if (cancelled) return
         setLangExtension(lang)
         setLoading(false)
