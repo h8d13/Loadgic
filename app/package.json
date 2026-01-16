@@ -7,8 +7,6 @@
     "clean": "rm -rf dist dist-electron release builder-debug.yml builder-effective-config.yaml",
     "dev": "vite",
     "dev:debug": "DEBUG=true vite",
-    "dev:x11": "ELECTRON_OZONE_PLATFORM_HINT=x11 vite",
-    "dev:wayland": "ELECTRON_OZONE_PLATFORM_HINT=wayland vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"

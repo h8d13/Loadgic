@@ -16,7 +16,7 @@ go_to () {
 for i in "$@"; do
 	case $i in
 		-i|--install)
-		shift 
+		shift
 		go_to
 		$n install
 		exit 0
@@ -30,7 +30,7 @@ for i in "$@"; do
 		-vi|--vite)
 		shift
 		go_to
-		$x tsc && $x $v build && G_MESSAGES_DEBUG=all electron .
+		$x tsc && $x $v build && DEBUG=true G_MESSAGES_DEBUG=all electron .
 		exit 0
 		;;
 		-e|--electron)
