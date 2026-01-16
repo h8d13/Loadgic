@@ -5,16 +5,24 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github'
 import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized'
 import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage } from '@codemirror/language'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useReducer, useCallback } from 'react'
 import type { Extension } from '@codemirror/state'
 import { useTheme } from '@/theme/useTheme'
+import { createMarkerGutter, markerReducer, type MarkerState } from './breakpointGutter'
 
 type Props = {
   content: string
   filePath: string
+  onMarkersChange?: (state: MarkerState) => void
 }
 
 const nord = nordInit({})
+
+const initialMarkerState: MarkerState = {
+  entry: null,
+  breaks: new Set(),
+  exits: new Set(),
+}
 
 function getEditorTheme(editorTheme: string, isDark: boolean): Extension {
   switch (editorTheme) {
@@ -101,17 +109,17 @@ async function loadLanguageExtension(ext: string): Promise<Extension | null> {
     case 'zsh':
     case 'fish':
     default: {
-      // Fallback to shell highlighting for unknown file types
       const { shell } = await import('@codemirror/legacy-modes/mode/shell')
       return StreamLanguage.define(shell)
     }
   }
 }
 
-export default function FileViewer({ content, filePath }: Props) {
+export default function FileViewer({ content, filePath, onMarkersChange }: Props) {
   const { theme, editorTheme } = useTheme()
-  const [extensions, setExtensions] = useState<Extension[]>([])
+  const [langExtension, setLangExtension] = useState<Extension | null>(null)
   const [loading, setLoading] = useState(true)
+  const [markers, dispatch] = useReducer(markerReducer, initialMarkerState)
 
   useEffect(() => {
     let cancelled = false
@@ -120,7 +128,7 @@ export default function FileViewer({ content, filePath }: Props) {
     const ext = getExtension(filePath)
     loadLanguageExtension(ext).then((lang) => {
       if (cancelled) return
-      setExtensions(lang ? [lang] : [])
+      setLangExtension(lang)
       setLoading(false)
     })
 
@@ -128,6 +136,31 @@ export default function FileViewer({ content, filePath }: Props) {
       cancelled = true
     }
   }, [filePath])
+
+  // Reset markers when file changes
+  useEffect(() => {
+    dispatch({ type: 'clear' })
+  }, [filePath])
+
+  // Notify parent of changes
+  useEffect(() => {
+    onMarkersChange?.(markers)
+  }, [markers, onMarkersChange])
+
+  const handleCycle = useCallback((line: number) => {
+    dispatch({ type: 'cycle', line })
+  }, [])
+
+  const markerGutter = useMemo(
+    () => createMarkerGutter(markers, handleCycle),
+    [markers, handleCycle]
+  )
+
+  const extensions = useMemo(() => {
+    const exts: Extension[] = [markerGutter]
+    if (langExtension) exts.push(langExtension)
+    return exts
+  }, [langExtension, markerGutter])
 
   if (loading) {
     return <div className="file-viewer-loading">Loading...</div>
