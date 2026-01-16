@@ -74,9 +74,14 @@ async function loadLanguageExtension(ext: string): Promise<Extension | null> {
     }
     case 'md':
     case 'markdown': {
-      const { markdown } = await import('@codemirror/lang-markdown')
-      const { languages } = await import('@codemirror/language-data')
-      return markdown({ codeLanguages: languages })
+      const { markdown, markdownLanguage } = await import('@codemirror/lang-markdown')
+      try {
+        const { languages } = await import('@codemirror/language-data')
+        return markdown({ base: markdownLanguage, codeLanguages: languages })
+      } catch {
+        // Fallback if language-data fails
+        return markdown()
+      }
     }
     case 'xml':
     case 'svg': {
@@ -252,7 +257,6 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
       theme={getEditorTheme(editorTheme, theme === 'dark')}
       extensions={extensions}
       readOnly
-      editable={false}
       basicSetup={{
         lineNumbers: true,
         foldGutter: false,

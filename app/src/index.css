@@ -408,10 +408,10 @@ body {
   width: 18px;
   height: 48px;
   border-radius: 0 6px 6px 0;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
   border-left: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -429,8 +429,8 @@ body {
 }
 
 .sidepanel-handle:hover {
-  background-color: var(--hover-bg);
-  color: var(--text-primary);
+  background-color: var(--hover);
+  color: var(--text);
 }
 
 /* =========================
