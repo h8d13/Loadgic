@@ -1,4 +1,5 @@
 import type { ProjectNode } from './types/project'
+import type { FileContent } from './types/file'
 
 export {}
 
@@ -14,15 +15,19 @@ declare global {
       openSettingsWindow: () => Promise<void>
       minimizeSettings: () => Promise<void>
       closeSettings: () => Promise<void>
-      // Your zoom controls
+      // Zoom controls
       zoomIn: () => Promise<number>
       zoomOut: () => Promise<number>
       zoomReset: () => Promise<number>
-      // Your generic event listener
+      // Debug controls
+      reload: () => Promise<void>
+      hardReload: () => Promise<void>
+      openDevTools: () => Promise<void>
+      // Generic event listener
       on: (channel: string, handler: () => void) => () => void
       // Upstream: Project/file operations
       openProject: () => Promise<{ rootPath: string; tree: ProjectNode } | null>
-      readFile: (filePath: string) => Promise<string | null>
+      readFile: (filePath: string) => Promise<FileContent | null>
       onMainMessage?: (handler: (message: string) => void) => () => void
     }
   }

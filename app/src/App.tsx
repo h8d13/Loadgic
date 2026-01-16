@@ -4,6 +4,7 @@ import MenuBar from './components/MenuBar'
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
+import type { FileContent } from './types/file'
 
 const FileViewer = lazy(() => import('./components/files/FileViewer'))
 
@@ -22,7 +23,7 @@ function App() {
   const [projectRoot, setProjectRoot] = useState<string | null>(null)
   const [projectTree, setProjectTree] = useState<ProjectNode | null>(null)
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
-  const [selectedFileContent, setSelectedFileContent] = useState<string | null>(null)
+  const [selectedFileContent, setSelectedFileContent] = useState<FileContent | null>(null)
   const [settingsMenu, setSettingsMenu] = useState<{ x: number; y: number } | null>(null)
   const settingsMenuRef = useRef<HTMLDivElement | null>(null)
   const isResizingRef = useRef(false)
@@ -183,8 +184,29 @@ function App() {
     await window.loadgic?.openSettingsWindow?.()
   }
 
-  function getBaseName(filePath: string) {
-    return filePath.split(/[/\\\\]/).pop() ?? filePath
+  function splitPath(filePath: string) {
+    const parts = filePath.split(/[/\\]/)
+    const name = parts.pop() ?? filePath
+    const dir = parts.join('/')
+    return { dir, name }
+  }
+
+  async function copyPathToClipboard(filePath: string) {
+    if (!filePath) return
+    try {
+      await navigator.clipboard.writeText(filePath)
+    } catch {
+      // Fallback for restricted clipboard permissions
+      const textarea = document.createElement('textarea')
+      textarea.value = filePath
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+    }
   }
 
   return (
@@ -236,18 +258,47 @@ function App() {
           {activeView === 'files' && selectedFilePath ? (
             <div className="file-viewer">
               <div className="file-viewer-header">
-                {getBaseName(selectedFilePath ?? '')}
+                {selectedFilePath ? (
+                  <>
+                    <button
+                      className="file-viewer-copy"
+                      onClick={() => copyPathToClipboard(selectedFilePath)}
+                      aria-label="Copy full path"
+                      title="Copy full path"
+                      type="button"
+                    >
+                      <span className="file-viewer-copy-icon">⧉</span>
+                      <span className="file-viewer-copy-label">Copy</span>
+                    </button>
+                    <span className="file-viewer-path">
+                      {splitPath(selectedFilePath).dir}
+                      {splitPath(selectedFilePath).dir ? '/' : ''}
+                    </span>
+                    <span className="file-viewer-name">
+                      {splitPath(selectedFilePath).name}
+                    </span>
+                  </>
+                ) : null}
               </div>
-              {selectedFileContent ? (
+              {selectedFileContent?.kind === 'text' ? (
                 <Suspense fallback={<div className="file-viewer-loading">Loading editor...</div>}>
                   <FileViewer
-                    content={selectedFileContent}
+                    content={selectedFileContent.content}
                     filePath={selectedFilePath}
                   />
                 </Suspense>
+              ) : selectedFileContent?.kind === 'image' ? (
+                <div className="image-viewer">
+                  <img
+                    src={`data:${selectedFileContent.mime};base64,${selectedFileContent.data}`}
+                    alt={splitPath(selectedFilePath).name}
+                  />
+                </div>
               ) : (
                 <pre className="file-viewer-body">
-                  Unsupported or binary file.
+                  {selectedFileContent?.kind === 'unsupported'
+                    ? selectedFileContent.reason
+                    : 'Unable to load file.'}
                 </pre>
               )}
             </div>

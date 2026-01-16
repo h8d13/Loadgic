@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readFile, readdir } from 'node:fs/promises'
+import { readFile, readdir, stat } from 'node:fs/promises'
 import type { Dirent } from 'node:fs'
 import type { DirNode, TreeNode } from '@/types/project'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -58,15 +58,19 @@ let currentZoom = 1.0
 // Upstream: File tree configuration
 const IGNORED_DIRS = new Set(['.git', 'node_modules'])
 let currentProjectRoot: string | null = null
+
+const IMAGE_MIME_BY_EXT: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.bmp': 'image/bmp',
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml',
+}
+
 const BINARY_EXTENSIONS = new Set([
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.webp',
-  '.bmp',
-  '.ico',
-  '.tiff',
   '.pdf',
   '.zip',
   '.rar',
@@ -75,7 +79,10 @@ const BINARY_EXTENSIONS = new Set([
   '.mov',
   '.mp3',
   '.wav',
+  '.tiff',
 ])
+
+const MAX_VIEW_FILE_BYTES = 10 * 1024 * 1024 // 10MB
 
 // Window controls
 handle('window:minimize', () => mainWindow?.minimize())
@@ -89,8 +96,19 @@ handle('window:toggle-fullscreen', () => {
   mainWindow.setFullScreen(!mainWindow.isFullScreen())
 })
 
+function centerSettingsWindow() {
+  if (!settingsWindow || settingsWindow.isDestroyed() || !mainWindow) return
+  const mainBounds = mainWindow.getBounds()
+  const [width, height] = settingsWindow.getSize()
+  const x = Math.round(mainBounds.x + (mainBounds.width - width) / 2)
+  const y = Math.round(mainBounds.y + (mainBounds.height - height) / 2)
+  settingsWindow.setPosition(x, y)
+}
+
 ipcMain.handle('window:open-settings', () => {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
+    centerSettingsWindow()
+    settingsWindow.show()
     settingsWindow.focus()
     return
   }
@@ -243,13 +261,34 @@ ipcMain.handle('file:read', async (_event, filePath: string) => {
   if (!resolvedFile.startsWith(resolvedRoot + path.sep)) {
     return null
   }
-  if (BINARY_EXTENSIONS.has(path.extname(resolvedFile).toLowerCase())) {
-    return null
+
+  const ext = path.extname(resolvedFile).toLowerCase()
+
+  // Check for unsupported binary files
+  if (BINARY_EXTENSIONS.has(ext)) {
+    return { kind: 'unsupported', reason: 'Binary file not supported' }
   }
+
   try {
+    // Check file size
+    const fileStat = await stat(resolvedFile)
+    if (fileStat.size > MAX_VIEW_FILE_BYTES) {
+      return { kind: 'unsupported', reason: 'File too large (>10MB)' }
+    }
+
+    // Handle image files
+    const mime = IMAGE_MIME_BY_EXT[ext]
+    if (mime) {
+      const buffer = await readFile(resolvedFile)
+      return { kind: 'image', mime, data: buffer.toString('base64') }
+    }
+
+    // Handle text files
     const buffer = await readFile(resolvedFile)
-    if (buffer.includes(0)) return null
-    return buffer.toString('utf-8')
+    if (buffer.includes(0)) {
+      return { kind: 'unsupported', reason: 'Binary file not supported' }
+    }
+    return { kind: 'text', content: buffer.toString('utf-8') }
   } catch {
     return null
   }
