@@ -1056,15 +1056,6 @@ body,
   padding: 0;
 }
 
-.cm-breakpoint-gutter .cm-gutterElement:hover::before {
-  content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(34, 197, 94, 0.3);
-  border: 1px dashed rgba(34, 197, 94, 0.5);
-}
-
 /* Entry point - Green arrow (only one) */
 .cm-entry-marker {
   width: 0;
