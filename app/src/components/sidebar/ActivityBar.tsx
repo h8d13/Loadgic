@@ -1,14 +1,13 @@
-import type { MouseEvent } from 'react'
 import type { ViewMode } from '@/types/view'
 import { LogicIcon, FilesIcon, RunIcon, SettingsIcon } from '@/components/icons'
 
 interface SidebarProps {
   activeView: ViewMode
   onChangeView: (view: ViewMode) => void
-  onOpenSettingsMenu: (event: MouseEvent<HTMLButtonElement>) => void
+  onOpenSettings: () => void
 }
 
-function Sidebar({ activeView, onChangeView, onOpenSettingsMenu }: SidebarProps) {
+function Sidebar({ activeView, onChangeView, onOpenSettings }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
@@ -38,11 +37,7 @@ function Sidebar({ activeView, onChangeView, onOpenSettingsMenu }: SidebarProps)
       </div>
 
       <div className="sidebar-bottom">
-        <button
-          className={`menu-btn ${activeView === 'settings' ? 'active' : ''}`}
-          onClick={onOpenSettingsMenu}
-          aria-label="Settings"
-        >
+        <button className="menu-btn" onClick={onOpenSettings} aria-label="Settings">
           <SettingsIcon size={20} />
         </button>
       </div>

@@ -13,15 +13,42 @@ function debug(...args: unknown[]) {
   if (DEBUG) console.log('DEBUG:', ...args)
 }
 
-const handle = <T>(channel: string, fn: () => T) => {
-  ipcMain.handle(channel, () => (debug('IPC:', channel), fn()))
-}
 const pendingSends = new Map<string, NodeJS.Timeout>()
-const send = (channel: string, debounceMs = 16) => {
-  if (pendingSends.has(channel)) return
-  debug('IPC:', channel)
-  mainWindow?.webContents.send(channel)
-  pendingSends.set(channel, setTimeout(() => pendingSends.delete(channel), debounceMs))
+const windowNames = new Map<number, string>()
+
+function getWindowName(event: Electron.IpcMainInvokeEvent): string {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  return win ? (windowNames.get(win.id) ?? 'unknown') : 'app'
+}
+
+const handle = <T>(channel: string, fn: () => T) => {
+  ipcMain.handle(channel, (event) => {
+    debug('IPC:', channel, `[${getWindowName(event)}]`)
+    return fn()
+  })
+}
+
+const sendTo = (win: BrowserWindow | null, channel: string, debounceMs = 16) => {
+  if (!win || win.isDestroyed()) return
+  const key = `${win.id}:${channel}`
+  if (pendingSends.has(key)) return
+  const name = windowNames.get(win.id) ?? 'unknown'
+  debug('IPC:', channel, `[${name}]`)
+  win.webContents.send(channel)
+  pendingSends.set(key, setTimeout(() => pendingSends.delete(key), debounceMs))
+}
+
+function attachWindowHooks(win: BrowserWindow, name: string) {
+  windowNames.set(win.id, name)
+  win.on('closed', () => windowNames.delete(win.id))
+  win.on('restore', () => sendTo(win, 'window:did-restore'))
+  win.on('minimize', () => sendTo(win, 'window:did-minimize'))
+  win.on('maximize', () => sendTo(win, 'window:did-maximize'))
+  win.on('unmaximize', () => sendTo(win, 'window:did-unmaximize'))
+  win.on('focus', () => sendTo(win, 'window:did-focus'))
+  win.on('blur', () => sendTo(win, 'window:did-blur'))
+  win.on('enter-full-screen', () => sendTo(win, 'window:did-enter-fullscreen'))
+  win.on('leave-full-screen', () => sendTo(win, 'window:did-leave-fullscreen'))
 }
 
 // ENV
@@ -153,37 +180,54 @@ ipcMain.handle('window:open-settings', () => {
   settingsWindow.on('closed', () => {
     settingsWindow = null
   })
+
+  attachWindowHooks(settingsWindow, 'settings')
 })
 
 handle('settings:minimize', () => settingsWindow?.minimize())
 handle('settings:close', () => settingsWindow?.close())
 
-// Zoom operations
-handle('view:zoom-in', () => {
-  if (!mainWindow) return currentZoom
+// Zoom operations (apply to requesting window)
+ipcMain.handle('view:zoom-in', (event) => {
+  debug('IPC:', 'view:zoom-in', `[${getWindowName(event)}]`)
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return currentZoom
   currentZoom = Math.min(currentZoom + 0.1, 3.0)
-  mainWindow.webContents.setZoomFactor(currentZoom)
+  win.webContents.setZoomFactor(currentZoom)
   return currentZoom
 })
 
-handle('view:zoom-out', () => {
-  if (!mainWindow) return currentZoom
+ipcMain.handle('view:zoom-out', (event) => {
+  debug('IPC:', 'view:zoom-out', `[${getWindowName(event)}]`)
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return currentZoom
   currentZoom = Math.max(currentZoom - 0.1, 0.3)
-  mainWindow.webContents.setZoomFactor(currentZoom)
+  win.webContents.setZoomFactor(currentZoom)
   return currentZoom
 })
 
-handle('view:zoom-reset', () => {
-  if (!mainWindow) return currentZoom
+ipcMain.handle('view:zoom-reset', (event) => {
+  debug('IPC:', 'view:zoom-reset', `[${getWindowName(event)}]`)
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return currentZoom
   currentZoom = 1.0
-  mainWindow.webContents.setZoomFactor(currentZoom)
+  win.webContents.setZoomFactor(currentZoom)
   return currentZoom
 })
 
-// Debug operations
-handle('debug:reload', () => mainWindow?.webContents.reload())
-handle('debug:hard-reload', () => mainWindow?.webContents.reloadIgnoringCache())
-handle('debug:open-devtools', () => mainWindow?.webContents.openDevTools())
+// Debug operations (apply to requesting window)
+ipcMain.handle('debug:reload', (event) => {
+  debug('IPC:', 'debug:reload', `[${getWindowName(event)}]`)
+  BrowserWindow.fromWebContents(event.sender)?.webContents.reload()
+})
+ipcMain.handle('debug:hard-reload', (event) => {
+  debug('IPC:', 'debug:hard-reload', `[${getWindowName(event)}]`)
+  BrowserWindow.fromWebContents(event.sender)?.webContents.reloadIgnoringCache()
+})
+ipcMain.handle('debug:open-devtools', (event) => {
+  debug('IPC:', 'debug:open-devtools', `[${getWindowName(event)}]`)
+  BrowserWindow.fromWebContents(event.sender)?.webContents.openDevTools()
+})
 
 // Upstream: Recursively read a directory and build a project tree
 async function readProjectTree(dirPath: string): Promise<DirNode> {
@@ -337,16 +381,7 @@ function createWindow() {
     debug(`Window resized: ${w}x${h}`)
   })
 
-  // HOOKS (your window lifecycle events)
-  mainWindow.on('restore', () => send('window:did-restore'))
-  mainWindow.on('minimize', () => send('window:did-minimize'))
-  mainWindow.on('maximize', () => send('window:did-maximize'))
-  mainWindow.on('unmaximize', () => send('window:did-unmaximize'))
-  mainWindow.on('focus', () => send('window:did-focus'))
-  mainWindow.on('blur', () => send('window:did-blur'))
-  mainWindow.on('enter-full-screen', () => send('window:did-enter-fullscreen'))
-  mainWindow.on('leave-full-screen', () => send('window:did-leave-fullscreen'))
-  // MORE EVENTS HERE
+  attachWindowHooks(mainWindow, 'main')
 }
 
 app.whenReady().then(createWindow)

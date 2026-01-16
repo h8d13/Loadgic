@@ -1,7 +1,7 @@
 import Sidebar from './components/sidebar/ActivityBar'
 import SidePanel from './components/sidebar/SidePanel'
 import MenuBar from './components/MenuBar'
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
 import type { FileContent } from './types/file'
@@ -25,8 +25,6 @@ function App() {
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
   const [selectedFileContent, setSelectedFileContent] = useState<FileContent | null>(null)
   const [copied, setCopied] = useState(false)
-  const [settingsMenu, setSettingsMenu] = useState<{ x: number; y: number } | null>(null)
-  const settingsMenuRef = useRef<HTMLDivElement | null>(null)
   const isResizingRef = useRef(false)
   const panelWidthRef = useRef(panelWidth)
   const isPanelOpenRef = useRef(isPanelOpen)
@@ -122,37 +120,6 @@ function App() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  useEffect(() => {
-    if (!settingsMenu) return
-    function handleClose() {
-      setSettingsMenu(null)
-    }
-    function handleKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setSettingsMenu(null)
-    }
-    window.addEventListener('click', handleClose)
-    window.addEventListener('contextmenu', handleClose)
-    window.addEventListener('keydown', handleKey)
-    return () => {
-      window.removeEventListener('click', handleClose)
-      window.removeEventListener('contextmenu', handleClose)
-      window.removeEventListener('keydown', handleKey)
-    }
-  }, [settingsMenu])
-
-  useLayoutEffect(() => {
-    if (!settingsMenu || !settingsMenuRef.current) return
-    const rect = settingsMenuRef.current.getBoundingClientRect()
-    const padding = 8
-    const maxX = window.innerWidth - rect.width - padding
-    const maxY = window.innerHeight - rect.height - padding
-    const nextX = Math.max(padding, Math.min(settingsMenu.x, maxX))
-    const nextY = Math.max(padding, Math.min(settingsMenu.y, maxY))
-    if (nextX !== settingsMenu.x || nextY !== settingsMenu.y) {
-      setSettingsMenu({ x: nextX, y: nextY })
-    }
-  }, [settingsMenu])
-
   function startResize(event: React.MouseEvent) {
     event.preventDefault()
     isResizingRef.current = true
@@ -173,16 +140,8 @@ function App() {
     setSelectedFileContent(content ?? null)
   }
 
-  function openSettingsMenu(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault()
-    event.stopPropagation()
-    const { clientX, clientY } = event
-    setSettingsMenu({ x: clientX + 12, y: clientY })
-  }
-
-  async function handleOpenSettings() {
-    setSettingsMenu(null)
-    await window.loadgic?.openSettingsWindow?.()
+  function openSettings() {
+    window.loadgic?.openSettingsWindow?.()
   }
 
   function splitPath(filePath: string) {
@@ -221,7 +180,7 @@ function App() {
         className="main"
         style={{ '--panel-width': isPanelOpen ? `${panelWidth}px` : '0px' } as React.CSSProperties}
       >
-        <Sidebar activeView={activeView} onChangeView={selectView} onOpenSettingsMenu={openSettingsMenu} />
+        <Sidebar activeView={activeView} onChangeView={selectView} onOpenSettings={openSettings} />
         <SidePanel
           activeView={activeView}
           isOpen={isPanelOpen}
@@ -297,19 +256,6 @@ function App() {
             />
           )}
         </div>
-        {settingsMenu ? (
-          <div
-            className="context-menu"
-            style={{ top: settingsMenu.y, left: settingsMenu.x }}
-            onClick={(event) => event.stopPropagation()}
-            role="menu"
-            ref={settingsMenuRef}
-          >
-            <button className="context-menu-item" onClick={handleOpenSettings}>
-              Settings
-            </button>
-          </div>
-        ) : null}
       </div>
     </div>
   )
