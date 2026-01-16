@@ -11,6 +11,8 @@ export type SettingsContextValue = {
   setEditorTheme: (theme: EditorTheme) => void
   showHidden: boolean
   setShowHidden: (show: boolean) => void
+  autoWrap: boolean
+  setAutoWrap: (wrap: boolean) => void
 }
 
 export const SettingsContext = createContext<SettingsContextValue | undefined>(undefined)

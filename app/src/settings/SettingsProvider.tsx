@@ -23,10 +23,16 @@ function getInitialShowHidden(): boolean {
   return window.localStorage.getItem('loadgic:showHidden') === 'true'
 }
 
+function getInitialAutoWrap(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem('loadgic:autoWrap') === 'true'
+}
+
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [editorTheme, setEditorTheme] = useState<EditorTheme>(getInitialEditorTheme)
   const [showHidden, setShowHidden] = useState(getInitialShowHidden)
+  const [autoWrap, setAutoWrap] = useState(getInitialAutoWrap)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -40,6 +46,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     window.localStorage.setItem('loadgic:showHidden', String(showHidden))
   }, [showHidden])
+
+  useEffect(() => {
+    window.localStorage.setItem('loadgic:autoWrap', String(autoWrap))
+  }, [autoWrap])
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
@@ -56,6 +66,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (event.key === 'loadgic:showHidden') {
         setShowHidden(event.newValue === 'true')
       }
+      if (event.key === 'loadgic:autoWrap') {
+        setAutoWrap(event.newValue === 'true')
+      }
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
@@ -70,8 +83,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setEditorTheme,
       showHidden,
       setShowHidden,
+      autoWrap,
+      setAutoWrap,
     }),
-    [theme, editorTheme, showHidden]
+    [theme, editorTheme, showHidden, autoWrap]
   )
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>

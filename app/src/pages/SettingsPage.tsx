@@ -39,6 +39,19 @@ function ShowHiddenToggle() {
   )
 }
 
+function AutoWrapToggle() {
+  const { autoWrap, setAutoWrap } = useSettings()
+  return (
+    <button
+      className="settings-toggle"
+      onClick={() => setAutoWrap(!autoWrap)}
+      type="button"
+    >
+      {autoWrap ? 'On' : 'Off'}
+    </button>
+  )
+}
+
 export default function SettingsPage() {
   return (
     <div className="settings-shell">
@@ -62,6 +75,14 @@ export default function SettingsPage() {
           <label className="settings-row">
             <span>Syntax highlighting</span>
             <EditorThemeSelect />
+          </label>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Editor</div>
+          <label className="settings-row">
+            <span>Auto wrap</span>
+            <AutoWrapToggle />
           </label>
         </div>
 

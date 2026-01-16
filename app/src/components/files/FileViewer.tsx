@@ -7,6 +7,7 @@ import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Extension } from '@codemirror/state'
+import { EditorView } from '@codemirror/view'
 import { useSettings } from '@/settings/useSettings'
 import { createMarkerExtensions, cycleMarker, type MarkerState } from './breakpointGutter'
 
@@ -173,7 +174,7 @@ const knownFilenames: Record<string, string> = {
 }
 
 export default function FileViewer({ content, filePath, onMarkersChange }: Props) {
-  const { theme, editorTheme } = useSettings()
+  const { theme, editorTheme, autoWrap } = useSettings()
   const [langExtension, setLangExtension] = useState<Extension | null>(null)
   const [loading, setLoading] = useState(true)
   const [markers, setMarkers] = useState<MarkerState>(
@@ -244,8 +245,9 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
       syntaxHighlighting(oneDarkHighlightStyle),
     ]
     if (langExtension) exts.push(langExtension)
+    if (autoWrap) exts.push(EditorView.lineWrapping)
     return exts
-  }, [langExtension, markerExtensions])
+  }, [langExtension, markerExtensions, autoWrap])
 
   if (loading) {
     return <div className="file-viewer-loading">Loading...</div>
