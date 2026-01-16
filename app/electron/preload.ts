@@ -16,10 +16,13 @@ contextBridge.exposeInMainWorld('loadgic', {
   openSettingsWindow: () => ipcRenderer.invoke('window:open-settings'),
   minimizeSettings: () => ipcRenderer.invoke('settings:minimize'),
   closeSettings: () => ipcRenderer.invoke('settings:close'),
-  // Your zoom controls
+  // Zoom controls
   zoomIn: () => ipcRenderer.invoke('view:zoom-in') as Promise<number>,
   zoomOut: () => ipcRenderer.invoke('view:zoom-out') as Promise<number>,
   zoomReset: () => ipcRenderer.invoke('view:zoom-reset') as Promise<number>,
+  // Debug controls
+  reload: () => ipcRenderer.invoke('debug:reload'),
+  openDevTools: () => ipcRenderer.invoke('debug:open-devtools'),
   // Your generic event listener
   on,
   // Upstream: Project/file operations

@@ -37,6 +37,14 @@ export default function MenuBar() {
     window.loadgic?.toggleFullscreen()
   }, [])
 
+  const handleReload = useCallback(() => {
+    window.loadgic?.reload()
+  }, [])
+
+  const handleOpenDevTools = useCallback(() => {
+    window.loadgic?.openDevTools()
+  }, [])
+
   const menus: Menu[] = [
     {
       label: 'View',
@@ -48,6 +56,13 @@ export default function MenuBar() {
         { label: 'Reset Zoom', shortcut: 'Ctrl+0', action: handleZoomReset },
         { separator: true, label: '' },
         { label: 'Full Screen', shortcut: 'F11', action: handleFullscreen },
+      ],
+    },
+    {
+      label: 'Debug',
+      items: [
+        { label: 'Reload', shortcut: 'Ctrl+Shift+R', action: handleReload },
+        { label: 'Dev Tools', shortcut: 'Ctrl+Shift+I', action: handleOpenDevTools },
       ],
     },
   ]
@@ -82,6 +97,12 @@ export default function MenuBar() {
       } else if (e.key === 'F11') {
         e.preventDefault()
         handleFullscreen()
+      } else if (ctrl && e.shiftKey && e.key === 'R') {
+        e.preventDefault()
+        handleReload()
+      } else if (ctrl && e.shiftKey && e.key === 'I') {
+        e.preventDefault()
+        handleOpenDevTools()
       } else if (e.key === 'Escape') {
         setOpenMenu(null)
       }
@@ -89,7 +110,7 @@ export default function MenuBar() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleTogglePanel, handleZoomIn, handleZoomOut, handleZoomReset, handleFullscreen])
+  }, [handleTogglePanel, handleZoomIn, handleZoomOut, handleZoomReset, handleFullscreen, handleReload, handleOpenDevTools])
 
   function handleMenuClick(label: string) {
     setOpenMenu(openMenu === label ? null : label)

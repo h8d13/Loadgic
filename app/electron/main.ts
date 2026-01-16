@@ -162,6 +162,10 @@ handle('view:zoom-reset', () => {
   return currentZoom
 })
 
+// Debug operations
+handle('debug:reload', () => mainWindow?.webContents.reload())
+handle('debug:open-devtools', () => mainWindow?.webContents.openDevTools())
+
 // Upstream: Recursively read a directory and build a project tree
 async function readProjectTree(dirPath: string): Promise<DirNode> {
   async function walk(currentPath: string): Promise<TreeNode[]> {
