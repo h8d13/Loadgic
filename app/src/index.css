@@ -18,13 +18,13 @@ body,
    THEME VARIABLES
 ========================= */
 :root {
-  --bg-primary: #0f1115;
-  --bg-secondary: #0b0d11;
-  --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --border-color: #1f2933;
-  --border-hover: #2a3440;
-  --hover-bg: #1f2933;
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --text-primary: #f0f0f0;
+  --text-secondary: #a0a0a0;
+  --border-color: #1a1a1a;
+  --border-hover: #2a2a2a;
+  --hover-bg: #151515;
   --close-hover: #dc2626;
 }
 
@@ -449,7 +449,7 @@ body {
 
 .content {
   scrollbar-width: thin;
-  scrollbar-color: #1f2933 transparent;
+  scrollbar-color: #1a1a1a transparent;
 }
 
 .content::-webkit-scrollbar {
@@ -457,7 +457,7 @@ body {
 }
 
 .content::-webkit-scrollbar-thumb {
-  background-color: #1f2933;
+  background-color: #1a1a1a;
   border-radius: 999px;
   border: 4px solid transparent;
   background-clip: padding-box;
@@ -496,8 +496,8 @@ body {
   overflow: auto;
   margin: 0;
   padding: 12px;
-  background: #0b0d11;
-  border: 1px solid #1f2933;
+  background: #050505;
+  border: 1px solid #1a1a1a;
   border-radius: 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
@@ -506,15 +506,15 @@ body {
   color: #e5e7eb;
   white-space: pre;
   scrollbar-width: thin;
-  scrollbar-color: #1f2933 transparent;
+  scrollbar-color: #1a1a1a transparent;
 }
 
 .file-viewer .cm-editor {
   flex: 1;
   overflow: hidden;
-  border: 1px solid #1f2933;
+  border: 1px solid #1a1a1a;
   border-radius: 8px;
-  background: #0b0d11;
+  background: #050505;
 }
 
 .file-viewer .cm-scroller {
@@ -522,8 +522,8 @@ body {
     'Courier New', monospace;
   font-size: 12px;
   scrollbar-width: thin;
-  scrollbar-color: #1f2933 transparent;
-  background: #0b0d11;
+  scrollbar-color: #1a1a1a transparent;
+  background: #050505;
 }
 
 .file-viewer .cm-content {
@@ -532,7 +532,7 @@ body {
 
 .file-viewer .cm-gutters {
   background: transparent;
-  border-right: 1px solid #1f2933;
+  border-right: 1px solid #1a1a1a;
 }
 
 .file-viewer .cm-scroller::-webkit-scrollbar {
@@ -540,7 +540,7 @@ body {
 }
 
 .file-viewer .cm-scroller::-webkit-scrollbar-thumb {
-  background-color: #1f2933;
+  background-color: #1a1a1a;
   border-radius: 999px;
 }
 
@@ -557,7 +557,7 @@ body {
 }
 
 .file-viewer-body::-webkit-scrollbar-thumb {
-  background-color: #1f2933;
+  background-color: #1a1a1a;
   border-radius: 999px;
 }
 
@@ -579,8 +579,8 @@ body {
   height: 30px;
   padding: 0 10px;
   border-radius: 6px;
-  background: #111827;
-  border: 1px solid #1f2933;
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
   color: #e5e7eb;
   cursor: pointer;
   font-size: 12px;
@@ -588,7 +588,7 @@ body {
 }
 
 .files-open-btn:hover {
-  background: #1f2933;
+  background: #151515;
 }
 
 .files-root,
@@ -599,13 +599,13 @@ body {
 
 .file-tree {
   font-size: 14px;
-  color: #e5e7eb;
+  color: #f0f0f0;
   overflow: auto;
   flex: 1;
   min-height: 0;
   padding: 6px 4px 12px 0;
   scrollbar-width: thin;
-  scrollbar-color: #1f2933 transparent;
+  scrollbar-color: #1a1a1a transparent;
   user-select: none;
 }
 
@@ -636,13 +636,13 @@ body {
 }
 
 .file-tree-label.selected {
-  background: #1f2933;
-  color: #e5e7eb;
+  background: #151515;
+  color: #f0f0f0;
   opacity: 1;
 }
 
 .file-tree-label:hover {
-  background: #111827;
+  background: #0a0a0a;
   opacity: 1;
 }
 
@@ -651,7 +651,7 @@ body {
 }
 
 .file-tree::-webkit-scrollbar-thumb {
-  background-color: #1f2933;
+  background-color: #1a1a1a;
   border-radius: 999px;
 }
 
@@ -665,8 +665,8 @@ body {
 .settings-shell {
   width: 100%;
   height: 100%;
-  background: #0f1115;
-  color: #e5e7eb;
+  background: #000000;
+  color: #f0f0f0;
   display: flex;
   flex-direction: column;
 }
@@ -678,8 +678,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #0f1115;
-  border-bottom: 1px solid #1f2933;
+  background-color: #000000;
+  border-bottom: 1px solid #1a1a1a;
   user-select: none;
   -webkit-app-region: drag;
 }
@@ -727,8 +727,8 @@ body {
 }
 
 .settings-section {
-  border: 1px solid #1f2933;
-  background: #0b0d11;
+  border: 1px solid #1a1a1a;
+  background: #050505;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
@@ -820,14 +820,14 @@ body {
    THEME OVERRIDES
 ========================= */
 :root {
-  --bg: #0f1115;
-  --bg-alt: #0b0d11;
-  --bg-panel: #111827;
-  --text: #e5e7eb;
-  --text-muted: #9ca3af;
-  --border: #1f2933;
-  --border-strong: #2a3440;
-  --hover: #1f2933;
+  --bg: #000000;
+  --bg-alt: #050505;
+  --bg-panel: #0a0a0a;
+  --text: #f0f0f0;
+  --text-muted: #a0a0a0;
+  --border: #1a1a1a;
+  --border-strong: #2a2a2a;
+  --hover: #151515;
   --accent: #dc2626;
 }
 

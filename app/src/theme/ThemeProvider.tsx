@@ -1,25 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { EDITOR_THEMES, type EditorTheme } from './constants'
+import { ThemeContext } from './ThemeContext'
 
 type Theme = 'dark' | 'light'
-type EditorTheme = 'oneDark' | 'dracula' | 'github' | 'solarized' | 'nord'
-
-type ThemeContextValue = {
-  theme: Theme
-  setTheme: (theme: Theme) => void
-  toggleTheme: () => void
-  editorTheme: EditorTheme
-  setEditorTheme: (theme: EditorTheme) => void
-}
-
-export const EDITOR_THEMES: { value: EditorTheme; label: string }[] = [
-  { value: 'oneDark', label: 'One Dark' },
-  { value: 'dracula', label: 'Dracula' },
-  { value: 'github', label: 'GitHub' },
-  { value: 'solarized', label: 'Solarized' },
-  { value: 'nord', label: 'Nord' },
-]
-
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'dark'
@@ -77,12 +60,4 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-}
-
-export function useTheme() {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) {
-    throw new Error('useTheme must be used within ThemeProvider')
-  }
-  return ctx
 }

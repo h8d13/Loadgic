@@ -210,16 +210,24 @@ async function readProjectTree(dirPath: string): Promise<DirNode> {
 // Upstream: Handle open directory selector
 ipcMain.handle('dialog:open-project', async () => {
   if (!mainWindow) return null
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory'],
-  })
-  if (result.canceled || result.filePaths.length === 0) {
+  debug('Opening folder dialog...')
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      debug('Folder selection cancelled by user')
+      return null
+    }
+    debug('Folder selected:', result.filePaths[0])
+    const rootPath = result.filePaths[0]
+    currentProjectRoot = rootPath
+    const tree = await readProjectTree(rootPath)
+    return { rootPath, tree }
+  } catch (err) {
+    debug('Folder selection error:', err)
     return null
   }
-  const rootPath = result.filePaths[0]
-  currentProjectRoot = rootPath
-  const tree = await readProjectTree(rootPath)
-  return { rootPath, tree }
 })
 
 // Upstream: Safe file reading

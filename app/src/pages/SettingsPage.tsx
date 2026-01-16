@@ -1,4 +1,5 @@
-import { useTheme, EDITOR_THEMES } from '../theme/ThemeProvider'
+import { useTheme } from '../theme/useTheme'
+import { EDITOR_THEMES } from '../theme/constants'
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()

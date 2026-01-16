@@ -7,7 +7,7 @@ import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage } from '@codemirror/language'
 import { useState, useEffect } from 'react'
 import type { Extension } from '@codemirror/state'
-import { useTheme } from '../../theme/ThemeProvider'
+import { useTheme } from '@/theme/useTheme'
 
 type Props = {
   content: string
@@ -99,12 +99,12 @@ async function loadLanguageExtension(ext: string): Promise<Extension | null> {
     case 'sh':
     case 'bash':
     case 'zsh':
-    case 'fish': {
+    case 'fish':
+    default: {
+      // Fallback to shell highlighting for unknown file types
       const { shell } = await import('@codemirror/legacy-modes/mode/shell')
       return StreamLanguage.define(shell)
     }
-    default:
-      return null
   }
 }
 
