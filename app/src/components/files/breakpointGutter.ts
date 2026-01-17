@@ -61,7 +61,7 @@ export function createMarkerExtensions(state: MarkerState, onCycle: (line: numbe
   })
 
   const lineDecos = EditorView.decorations.compute([], (editorState) => {
-    const decos: ReturnType<typeof Decoration.line['range']>[] = []
+    const decos: ReturnType<Decoration['range']>[] = []
     for (let i = 1; i <= editorState.doc.lines; i++) {
       const pos = editorState.doc.line(i).from
       if (state.entry === i) decos.push(Decoration.line({ class: 'cm-line-entry' }).range(pos))

@@ -1,0 +1,6 @@
+#!/bin/bash
+#lg=en_
+echo "Greetings from greet!"
+#lg=br_
+sleep 1
+echo "Done greeting." && exit #lg=ex_

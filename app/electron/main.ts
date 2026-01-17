@@ -1,7 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readFile, readdir, stat } from 'node:fs/promises'
+import { readFile, readdir, stat, watch } from 'node:fs/promises'
+import { generateCStore, getCstorePath, parseLgFile, serializeLgFile, fnv1a } from './CStore'
+import { LgRunner, type LgMetric } from './LgRunner'
+
+let activeRunner: LgRunner | null = null
 import type { Dirent } from 'node:fs'
 import type { DirNode, TreeNode } from '@/types/project'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -64,6 +68,7 @@ app.on('browser-window-created', (_event, win) => {
 
 // ENV
 app.on('window-all-closed', () => {
+  stopProjectWatcher()
   if (process.platform !== 'darwin') {
     app.quit()
     mainWindow = null
@@ -94,8 +99,77 @@ let settingsWindow: BrowserWindow | null = null
 let currentZoom = 1.0
 
 // Upstream: File tree configuration
-const IGNORED_DIRS = new Set(['.git', 'node_modules'])
+// Only truly system directories that should NEVER be shown
+// Hidden files (dot-prefixed) are filtered by frontend based on showHidden setting
+const IGNORED_DIRS = new Set(['.git', 'node_modules', '.cstore'])
 let currentProjectRoot: string | null = null
+let projectWatcher: AbortController | null = null
+
+// Check if any path segment is in ignored dirs
+function isIgnoredPath(filename: string): boolean {
+  const parts = filename.split(path.sep)
+  return parts.some(part => IGNORED_DIRS.has(part))
+}
+
+// Debounce file change events (fs can emit multiple for single change)
+const changeDebounce = new Map<string, NodeJS.Timeout>()
+const DEBOUNCE_MS = 100
+let treeRefreshTimeout: NodeJS.Timeout | null = null
+const TREE_REFRESH_DEBOUNCE_MS = 500
+
+async function startProjectWatcher(rootPath: string) {
+  // Stop existing watcher
+  projectWatcher?.abort()
+  projectWatcher = new AbortController()
+
+  try {
+    const watcher = watch(rootPath, { recursive: true, signal: projectWatcher.signal })
+    debug('Project watcher started:', rootPath)
+
+    for await (const event of watcher) {
+      if (!event.filename) continue
+
+      // Ignore .cstore, .git, node_modules, .venv, __pycache__, etc.
+      if (isIgnoredPath(event.filename)) continue
+
+      const filePath = path.join(rootPath, event.filename)
+
+      // If file was added/removed (rename event), refresh tree
+      if (event.eventType === 'rename') {
+        if (treeRefreshTimeout) clearTimeout(treeRefreshTimeout)
+        treeRefreshTimeout = setTimeout(async () => {
+          treeRefreshTimeout = null
+          try {
+            const tree = await readProjectTree(rootPath)
+            mainWindow?.webContents.send('tree:refresh', tree)
+          } catch (err) {
+            debug('Tree refresh error:', err)
+          }
+        }, TREE_REFRESH_DEBOUNCE_MS)
+        continue
+      }
+
+      // Debounce content changes
+      const existing = changeDebounce.get(filePath)
+      if (existing) clearTimeout(existing)
+
+      changeDebounce.set(filePath, setTimeout(() => {
+        changeDebounce.delete(filePath)
+        debug('File changed:', filePath)
+        mainWindow?.webContents.send('file:changed', filePath)
+      }, DEBOUNCE_MS))
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') return
+    debug('Watcher error:', err)
+  }
+}
+
+function stopProjectWatcher() {
+  projectWatcher?.abort()
+  projectWatcher = null
+  changeDebounce.clear()
+}
 
 const IMAGE_MIME_BY_EXT: Record<string, string> = {
   '.png': 'image/png',
@@ -301,6 +375,21 @@ ipcMain.handle('dialog:open-project', async () => {
     const rootPath = result.filePaths[0]
     currentProjectRoot = rootPath
     const tree = await readProjectTree(rootPath)
+
+    // Generate .cstore only if it doesn't exist
+    const cstorePath = path.join(rootPath, '.cstore')
+    try {
+      await stat(cstorePath)
+      debug('CStore exists:', cstorePath)
+    } catch {
+      const cstoreStart = performance.now()
+      await generateCStore(rootPath)
+      debug('CStore generated:', cstorePath, `(${(performance.now() - cstoreStart).toFixed(1)}ms)`)
+    }
+
+    // Start watching for file changes
+    startProjectWatcher(rootPath)
+
     return { rootPath, tree }
   } catch (err) {
     debug('Folder selection error:', err)
@@ -347,6 +436,114 @@ ipcMain.handle('file:read', async (_event, filePath: string) => {
   } catch {
     return null
   }
+})
+
+// CStore: Read metadata for a file
+ipcMain.handle('cstore:read-meta', async (_event, filePath: string) => {
+  if (!currentProjectRoot) {
+    debug('cstore:read-meta: no project root')
+    return null
+  }
+  try {
+    const cstorePath = getCstorePath(currentProjectRoot, filePath)
+    debug('cstore:read-meta:', filePath, '->', cstorePath)
+    const content = await readFile(cstorePath, 'utf8')
+    const { meta } = parseLgFile(content)
+    debug('cstore:read-meta result:', meta)
+    return meta
+  } catch (err) {
+    debug('cstore:read-meta error:', err)
+    return []
+  }
+})
+
+// CStore: Write metadata for a file
+ipcMain.handle('cstore:write-meta', async (_event, filePath: string, meta: string[]) => {
+  if (!currentProjectRoot) {
+    debug('cstore:write-meta: no project root')
+    return false
+  }
+  try {
+    const cstorePath = getCstorePath(currentProjectRoot, filePath)
+    debug('cstore:write-meta:', filePath, '->', cstorePath, 'meta:', meta)
+    const { mkdirSync, writeFileSync, existsSync } = await import('node:fs')
+
+    let hashes: string[] = []
+    if (existsSync(cstorePath)) {
+      const content = await readFile(cstorePath, 'utf8')
+      hashes = parseLgFile(content).hashes
+      debug('cstore:write-meta: existing file, hashes count:', hashes.length)
+    } else {
+      // Generate hashes from source file
+      debug('cstore:write-meta: creating new file')
+      const sourceContent = await readFile(filePath, 'utf8')
+      hashes = sourceContent.split('\n').map(fnv1a)
+      mkdirSync(path.dirname(cstorePath), { recursive: true })
+    }
+
+    writeFileSync(cstorePath, serializeLgFile(hashes, meta))
+    debug('cstore:write-meta: success')
+    return true
+  } catch (err) {
+    debug('cstore:write-meta error:', err)
+    return false
+  }
+})
+
+// LgRunner: Run file with marker instrumentation
+ipcMain.handle('lg:run', async (_event, filePath: string, args: string[] = []) => {
+  debug('lg:run called with:', filePath, args)
+
+  if (activeRunner) {
+    activeRunner.kill()
+  }
+
+  activeRunner = new LgRunner()
+
+  // Forward events to renderer
+  activeRunner.on('metric', (metric: LgMetric) => {
+    mainWindow?.webContents.send('lg:metric', metric)
+  })
+
+  activeRunner.on('stdout', (data: string) => {
+    mainWindow?.webContents.send('lg:stdout', data)
+  })
+
+  activeRunner.on('stderr', (data: string) => {
+    mainWindow?.webContents.send('lg:stderr', data)
+  })
+
+  activeRunner.on('done', (result: { code: number | null; summary: unknown }) => {
+    mainWindow?.webContents.send('lg:done', result)
+    activeRunner = null
+  })
+
+  try {
+    debug('Starting runner for:', filePath)
+    const result = await activeRunner.run({
+      file: filePath,
+      args,
+      cwd: currentProjectRoot ?? undefined,
+      projectRoot: currentProjectRoot ?? undefined,
+    })
+    debug('Runner finished with code:', result.code)
+    return { success: true, code: result.code }
+  } catch (err) {
+    debug('Runner error:', err)
+    mainWindow?.webContents.send('lg:stderr', String(err))
+    mainWindow?.webContents.send('lg:done', { code: 1, summary: {} })
+    return { success: false, error: String(err) }
+  }
+})
+
+// LgRunner: Kill active run
+ipcMain.handle('lg:kill', () => {
+  if (activeRunner) {
+    activeRunner.kill()
+    activeRunner = null
+    return true
+  }
+  return false
 })
 
 function createWindow() {

@@ -1,0 +1,10 @@
+#!/bin/bash
+#lgs=./greet
+#lg=en_
+sleep 3
+#lg=br_
+echo "Hello $USER"
+
+# Call second script
+./greet
+#lg=ex_

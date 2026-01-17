@@ -1,0 +1,49 @@
+#!/bin/bash
+#lgs=./lib/analyzer.py
+#lgs=./lib/processor.py
+#lgs=./lib/validator.py
+
+MODE=${1:-"normal"}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+#lg=en_
+echo "=== Loadgic Demo Suite ==="
+echo "Mode: $MODE"
+echo ""
+
+#lg=br_
+# Run validator
+echo "--- Validator ---"
+if [ "$MODE" = "strict" ]; then
+    python3 "$SCRIPT_DIR/lib/validator.py" "TestUser1" "admin" --strict
+else
+    python3 "$SCRIPT_DIR/lib/validator.py" "hello" "Test123"
+fi
+echo ""
+
+#lg=br_
+# Run analyzer
+echo "--- Analyzer ---"
+if [ "$MODE" = "full" ]; then
+    python3 "$SCRIPT_DIR/lib/analyzer.py" full 200
+elif [ "$MODE" = "stats" ]; then
+    python3 "$SCRIPT_DIR/lib/analyzer.py" stats 100
+else
+    python3 "$SCRIPT_DIR/lib/analyzer.py" basic 50
+fi
+echo ""
+
+#lg=br_
+# Run processor
+echo "--- Processor ---"
+if [ "$MODE" = "hard" ]; then
+    python3 "$SCRIPT_DIR/lib/processor.py" hard 4 --retry
+elif [ "$MODE" = "easy" ]; then
+    python3 "$SCRIPT_DIR/lib/processor.py" easy 6
+else
+    python3 "$SCRIPT_DIR/lib/processor.py" normal 5
+fi
+
+#lg=ex_
+echo ""
+echo "=== Complete ==="

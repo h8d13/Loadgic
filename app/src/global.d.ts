@@ -28,6 +28,19 @@ declare global {
       // Upstream: Project/file operations
       openProject: () => Promise<{ rootPath: string; tree: ProjectNode } | null>
       readFile: (filePath: string) => Promise<FileContent | null>
+      // CStore: metadata operations
+      readMeta: (filePath: string) => Promise<string[]>
+      writeMeta: (filePath: string, meta: string[]) => Promise<boolean>
+      // File watcher
+      onFileChanged: (handler: (filePath: string) => void) => () => void
+      onTreeRefresh: (handler: (tree: ProjectNode) => void) => () => void
+      // LgRunner: Run file with instrumentation
+      lgRun: (filePath: string, args?: string[]) => Promise<{ success: boolean; code?: number | null; error?: string }>
+      lgKill: () => Promise<boolean>
+      onLgMetric: (handler: (metric: { marker: string; line: number; time: number; source: string }) => void) => () => void
+      onLgStdout: (handler: (data: string) => void) => () => void
+      onLgStderr: (handler: (data: string) => void) => () => void
+      onLgDone: (handler: (result: { code: number | null; summary: unknown }) => void) => () => void
       onMainMessage?: (handler: (message: string) => void) => () => void
     }
   }

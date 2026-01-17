@@ -5,15 +5,17 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github'
 import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized'
 import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import type { Extension } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { useSettings } from '@/settings/useSettings'
 import { createMarkerExtensions, cycleMarker, type MarkerState } from './breakpointGutter'
+import { parseCodeMarkers, parseMetaMarkers, mergeMarkers, serializeMarkers } from '@/lib/lgParser'
 
 type Props = {
   content: string
   filePath: string
+  goToLine?: { line: number; key: number } | null
   onMarkersChange?: (state: MarkerState) => void
 }
 
@@ -173,13 +175,15 @@ const knownFilenames: Record<string, string> = {
   'license': 'text',
 }
 
-export default function FileViewer({ content, filePath, onMarkersChange }: Props) {
+export default function FileViewer({ content, filePath, goToLine, onMarkersChange }: Props) {
   const { theme, editorTheme, autoWrap } = useSettings()
   const [langExtension, setLangExtension] = useState<Extension | null>(null)
   const [loading, setLoading] = useState(true)
   const [markers, setMarkers] = useState<MarkerState>(
     () => markerCache.get(filePath) ?? initialMarkerState
   )
+  const userChangedMarkers = useRef(false)
+  const editorRef = useRef<{ view?: EditorView }>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -215,14 +219,34 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
     }
   }, [filePath])
 
-  // Load cached markers when file changes
+  // Load markers: parse from code + load from .cstore
   useEffect(() => {
-    setMarkers(markerCache.get(filePath) ?? initialMarkerState)
-  }, [filePath])
+    // Clear cache on content change to force re-parse
+    markerCache.delete(filePath)
 
-  // Save markers to cache when they change
+    // Parse #lg= markers from code
+    const codeMarkers = parseCodeMarkers(content)
+
+    // Load metadata from .cstore
+    window.loadgic.readMeta(filePath).then((meta) => {
+      const metaMarkers = parseMetaMarkers(meta)
+      const merged = mergeMarkers(codeMarkers, metaMarkers)
+      setMarkers(merged)
+      markerCache.set(filePath, merged)
+    }).catch(() => {
+      setMarkers(codeMarkers)
+      markerCache.set(filePath, codeMarkers)
+    })
+  }, [filePath, content])
+
+  // Save markers to cache and .cstore only when user changes them
   useEffect(() => {
     markerCache.set(filePath, markers)
+    if (userChangedMarkers.current) {
+      const meta = serializeMarkers(markers)
+      window.loadgic.writeMeta(filePath, meta)
+      userChangedMarkers.current = false
+    }
   }, [filePath, markers])
 
   // Notify parent of changes
@@ -230,7 +254,20 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
     onMarkersChange?.(markers)
   }, [markers, onMarkersChange])
 
+  // Scroll to line when goToLine changes
+  useEffect(() => {
+    if (!goToLine?.line || !editorRef.current?.view) return
+    const view = editorRef.current.view
+    const lineNum = Math.min(goToLine.line, view.state.doc.lines)
+    const line = view.state.doc.line(lineNum)
+    // Scroll line to top of view
+    view.dispatch({
+      effects: EditorView.scrollIntoView(line.from, { y: 'start', yMargin: 0 }),
+    })
+  }, [goToLine?.key, goToLine?.line])
+
   const handleCycle = useCallback((line: number) => {
+    userChangedMarkers.current = true
     setMarkers((s) => cycleMarker(s, line))
   }, [])
 
@@ -255,6 +292,7 @@ export default function FileViewer({ content, filePath, onMarkersChange }: Props
 
   return (
     <CodeMirror
+      ref={editorRef}
       value={content}
       theme={getEditorTheme(editorTheme, theme === 'dark')}
       extensions={extensions}
