@@ -4,6 +4,10 @@ import electron from 'vite-plugin-electron/simple'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env': '{}',
+  },
   resolve: {
     alias: {
       '@': path.join(__dirname, 'src'),

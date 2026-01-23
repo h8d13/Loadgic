@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { EDITOR_THEMES, type EditorTheme } from './constants'
-import { SettingsContext } from './SettingsContext'
+import { SettingsContext, type LogicSettings } from './SettingsContext'
 
 type Theme = 'dark' | 'light'
 
@@ -28,11 +28,30 @@ function getInitialAutoWrap(): boolean {
   return window.localStorage.getItem('loadgic:autoWrap') === 'true'
 }
 
+function getInitialLogicSettings(): LogicSettings {
+  if (typeof window === 'undefined') {
+    return { maxDepth: 2, maxChildren: 10 }
+  }
+  const stored = window.localStorage.getItem('loadgic:logicSettings')
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as Partial<LogicSettings>
+      const maxDepth = typeof parsed.maxDepth === 'number' ? parsed.maxDepth : 2
+      const maxChildren = typeof parsed.maxChildren === 'number' ? parsed.maxChildren : 10
+      return { maxDepth, maxChildren }
+    } catch {
+      return { maxDepth: 2, maxChildren: 10 }
+    }
+  }
+  return { maxDepth: 2, maxChildren: 10 }
+}
+
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [editorTheme, setEditorTheme] = useState<EditorTheme>(getInitialEditorTheme)
   const [showHidden, setShowHidden] = useState(getInitialShowHidden)
   const [autoWrap, setAutoWrap] = useState(getInitialAutoWrap)
+  const [logicSettings, setLogicSettings] = useState<LogicSettings>(getInitialLogicSettings)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -52,6 +71,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, [autoWrap])
 
   useEffect(() => {
+    window.localStorage.setItem('loadgic:logicSettings', JSON.stringify(logicSettings))
+  }, [logicSettings])
+
+  useEffect(() => {
     function handleStorage(event: StorageEvent) {
       if (event.key === 'loadgic:theme') {
         if (event.newValue === 'dark' || event.newValue === 'light') {
@@ -69,6 +92,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (event.key === 'loadgic:autoWrap') {
         setAutoWrap(event.newValue === 'true')
       }
+      if (event.key === 'loadgic:logicSettings' && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue) as Partial<LogicSettings>
+          setLogicSettings({
+            maxDepth: typeof parsed.maxDepth === 'number' ? parsed.maxDepth : 2,
+            maxChildren: typeof parsed.maxChildren === 'number' ? parsed.maxChildren : 10,
+          })
+        } catch {
+          // Invalid JSON, ignore
+        }
+      }
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
@@ -85,8 +119,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setShowHidden,
       autoWrap,
       setAutoWrap,
+      logicSettings,
+      setLogicSettings,
     }),
-    [theme, editorTheme, showHidden, autoWrap]
+    [theme, editorTheme, showHidden, autoWrap, logicSettings]
   )
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>

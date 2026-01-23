@@ -3,6 +3,11 @@ import type { EditorTheme } from './constants'
 
 type Theme = 'dark' | 'light'
 
+export type LogicSettings = {
+  maxDepth: number
+  maxChildren: number
+}
+
 export type SettingsContextValue = {
   theme: Theme
   setTheme: (theme: Theme) => void
@@ -13,6 +18,8 @@ export type SettingsContextValue = {
   setShowHidden: (show: boolean) => void
   autoWrap: boolean
   setAutoWrap: (wrap: boolean) => void
+  logicSettings: LogicSettings
+  setLogicSettings: (settings: LogicSettings) => void
 }
 
 export const SettingsContext = createContext<SettingsContextValue | undefined>(undefined)

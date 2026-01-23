@@ -1,6 +1,9 @@
 import Sidebar from './components/sidebar/ActivityBar'
 import SidePanel from './components/sidebar/SidePanel'
 import MenuBar from './components/MenuBar'
+import LogicView from '@/components/logic/LogicView'
+import type { LogicViewHandle } from '@/components/logic/LogicView'
+import InspectorPanel from '@/components/inspector/InspectorPanel'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { ViewMode } from './types/view'
 import type { ProjectNode } from './types/project'
@@ -8,11 +11,14 @@ import type { FileContent } from './types/file'
 
 const FileViewer = lazy(() => import('./components/files/FileViewer'))
 
+type ContextMenuItem = { label: string; action: () => void }
+
 //hreflang
 //system color theme
 
 const SIDEBAR_WIDTH = 54
 const MIN_PANEL_WIDTH = 220
+const MIN_INSPECTOR_WIDTH = 220
 const COLLAPSE_THRESHOLD = 140
 const MIN_CONTENT_WIDTH = 200
 
@@ -20,6 +26,10 @@ function App() {
   const [activeView, setActiveView] = useState<ViewMode>('files')
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelWidth, setPanelWidth] = useState(320)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true)
+  const [inspectorWidth, setInspectorWidth] = useState(280)
+  const [logicRevealKey, setLogicRevealKey] = useState(0)
+  const [prevActiveView, setPrevActiveView] = useState(activeView)
   const [projectRoot, setProjectRoot] = useState<string | null>(null)
   const [projectTree, setProjectTree] = useState<ProjectNode | null>(null)
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
@@ -30,11 +40,19 @@ function App() {
   const [, setRunSummary] = useState<{ durations: { from: number; to: number; fromMarker: string; toMarker: string; duration: number }[] } | null>(null)
   const [runResult, setRunResult] = useState<{ time: number; code: number | null } | null>(null)
   const [goToLine, setGoToLine] = useState<{ line: number; key: number } | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; items: ContextMenuItem[] } | null>(null)
   const runStartRef = useRef<number>(0)
+  const goToLineKeyRef = useRef(0)
+  const suppressContextCloseRef = useRef(false)
+  const logicViewRef = useRef<LogicViewHandle | null>(null)
   const isResizingRef = useRef(false)
+  const isInspectorResizingRef = useRef(false)
   const panelWidthRef = useRef(panelWidth)
   const isPanelOpenRef = useRef(isPanelOpen)
   const lastOpenWidthRef = useRef(panelWidth)
+  const inspectorWidthRef = useRef(inspectorWidth)
+  const isInspectorOpenRef = useRef(isInspectorOpen)
+  const lastInspectorWidthRef = useRef(inspectorWidth)
 
   function selectView(next: ViewMode) {
     setActiveView((prev) => {
@@ -68,36 +86,85 @@ function App() {
   }, [isPanelOpen])
 
   useEffect(() => {
+    inspectorWidthRef.current = inspectorWidth
+  }, [inspectorWidth])
+
+  useEffect(() => {
+    isInspectorOpenRef.current = isInspectorOpen
+  }, [isInspectorOpen])
+
+  // Track view changes and increment reveal key when switching to logic view
+  if (activeView !== prevActiveView) {
+    setPrevActiveView(activeView)
+    if (activeView === 'logic') {
+      setLogicRevealKey((prev) => prev + 1)
+    }
+  }
+
+  useEffect(() => {
     function handleMouseMove(event: MouseEvent) {
-      if (!isResizingRef.current) return
-      const nextWidth = Math.max(0, event.clientX - SIDEBAR_WIDTH)
+      // Side panel resizing
+      if (isResizingRef.current) {
+        const nextWidth = Math.max(0, event.clientX - SIDEBAR_WIDTH)
 
-      if (nextWidth < COLLAPSE_THRESHOLD) {
-        if (isPanelOpenRef.current) {
-          setIsPanelOpen(false)
+        if (nextWidth < COLLAPSE_THRESHOLD) {
+          if (isPanelOpenRef.current) {
+            setIsPanelOpen(false)
+          }
+          return
         }
-        return
+
+        if (!isPanelOpenRef.current) {
+          setIsPanelOpen(true)
+        }
+
+        const maxPanelWidth = Math.max(
+          MIN_PANEL_WIDTH,
+          window.innerWidth - SIDEBAR_WIDTH - MIN_CONTENT_WIDTH
+        )
+        const clampedWidth = Math.min(Math.max(nextWidth, MIN_PANEL_WIDTH), maxPanelWidth)
+        setPanelWidth(clampedWidth)
+        lastOpenWidthRef.current = clampedWidth
       }
 
-      if (!isPanelOpenRef.current) {
-        setIsPanelOpen(true)
-      }
+      // Inspector panel resizing
+      if (isInspectorResizingRef.current) {
+        const nextWidth = Math.max(0, window.innerWidth - event.clientX)
 
-      const maxPanelWidth = Math.max(
-        MIN_PANEL_WIDTH,
-        window.innerWidth - SIDEBAR_WIDTH - MIN_CONTENT_WIDTH
-      )
-      const clampedWidth = Math.min(Math.max(nextWidth, MIN_PANEL_WIDTH), maxPanelWidth)
-      setPanelWidth(clampedWidth)
-      lastOpenWidthRef.current = clampedWidth
+        if (nextWidth < COLLAPSE_THRESHOLD) {
+          if (isInspectorOpenRef.current) {
+            setIsInspectorOpen(false)
+          }
+          return
+        }
+
+        if (!isInspectorOpenRef.current) {
+          setIsInspectorOpen(true)
+        }
+
+        const maxInspectorWidth = Math.max(
+          MIN_INSPECTOR_WIDTH,
+          window.innerWidth - SIDEBAR_WIDTH - MIN_CONTENT_WIDTH
+        )
+        const clampedWidth = Math.min(Math.max(nextWidth, MIN_INSPECTOR_WIDTH), maxInspectorWidth)
+        setInspectorWidth(clampedWidth)
+        lastInspectorWidthRef.current = clampedWidth
+      }
     }
 
     function handleMouseUp() {
-      if (!isResizingRef.current) return
-      isResizingRef.current = false
+      if (isResizingRef.current) {
+        isResizingRef.current = false
+        if (!isPanelOpenRef.current) {
+          setPanelWidth(lastOpenWidthRef.current)
+        }
+      }
 
-      if (!isPanelOpenRef.current) {
-        setPanelWidth(lastOpenWidthRef.current)
+      if (isInspectorResizingRef.current) {
+        isInspectorResizingRef.current = false
+        if (!isInspectorOpenRef.current) {
+          setInspectorWidth(lastInspectorWidthRef.current)
+        }
       }
     }
 
@@ -129,6 +196,11 @@ function App() {
   function startResize(event: React.MouseEvent) {
     event.preventDefault()
     isResizingRef.current = true
+  }
+
+  function startInspectorResize(event: React.MouseEvent) {
+    event.preventDefault()
+    isInspectorResizingRef.current = true
   }
 
   async function openProject() {
@@ -274,7 +346,8 @@ function App() {
       const content = await window.loadgic?.readFile?.(filePath)
       setSelectedFileContent(content ?? null)
     }
-    setGoToLine({ line, key: Date.now() })
+    goToLineKeyRef.current += 1
+    setGoToLine({ line, key: goToLineKeyRef.current })
   }
 
   async function copyPathToClipboard(filePath: string) {
@@ -283,6 +356,102 @@ function App() {
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
+
+  // Close context menu on click/escape
+  useEffect(() => {
+    if (!contextMenu) return
+    function handleClose() {
+      if (suppressContextCloseRef.current) return
+      setContextMenu(null)
+    }
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setContextMenu(null)
+    }
+    window.addEventListener('click', handleClose)
+    window.addEventListener('contextmenu', handleClose)
+    window.addEventListener('keydown', handleKey)
+    return () => {
+      window.removeEventListener('click', handleClose)
+      window.removeEventListener('contextmenu', handleClose)
+      window.removeEventListener('keydown', handleKey)
+    }
+  }, [contextMenu])
+
+  // Global context menu handler (right-click)
+  useEffect(() => {
+    function handleGlobalContextMenu(event: MouseEvent) {
+      const target = event.target as HTMLElement | null
+      if (!target) return
+
+      const openContextMenu = (items: ContextMenuItem[]) => {
+        suppressContextCloseRef.current = true
+        setContextMenu({ x: event.clientX, y: event.clientY, items })
+        window.setTimeout(() => {
+          suppressContextCloseRef.current = false
+        }, 0)
+      }
+
+      // Check if right-clicked on a file in the tree view
+      const treeFile = target.closest('[data-file-path]') as HTMLElement | null
+      if (treeFile) {
+        const filePath = treeFile.dataset.filePath
+        if (filePath) {
+          event.preventDefault()
+          openContextMenu([
+            {
+              label: 'Reveal in file view',
+              action: () => {
+                setActiveView('files')
+                handleSelectFile(filePath)
+              },
+            },
+            {
+              label: 'Reveal in logic view',
+              action: () => {
+                setActiveView('logic')
+                handleSelectFile(filePath)
+              },
+            },
+            { label: 'Copy path', action: () => copyPathToClipboard(filePath) },
+          ])
+          return
+        }
+      }
+
+      // Check if right-clicked on a file node in the logic view
+      const logicHandle = logicViewRef.current
+      if (logicHandle && logicHandle.isCanvasTarget(target)) {
+        const filePath = logicHandle.hitTestFile(event.clientX, event.clientY)
+        if (filePath) {
+          event.preventDefault()
+          openContextMenu([
+            {
+              label: 'Read in file view',
+              action: () => {
+                setActiveView('files')
+                handleSelectFile(filePath)
+              },
+            },
+          ])
+          return
+        }
+      }
+
+      // Check if right-clicked inside code editor
+      if (target.closest('.cm-editor') && selectedFilePath) {
+        event.preventDefault()
+        openContextMenu([
+          { label: 'Copy path', action: () => copyPathToClipboard(selectedFilePath) },
+          { label: 'Reveal in logic view', action: () => setActiveView('logic') },
+        ])
+      }
+    }
+
+    window.addEventListener('contextmenu', handleGlobalContextMenu, true)
+    return () => {
+      window.removeEventListener('contextmenu', handleGlobalContextMenu, true)
+    }
+  }, [selectedFilePath])
 
   return (
     <div className="app">
@@ -312,7 +481,10 @@ function App() {
 
       <div
         className="main"
-        style={{ '--panel-width': isPanelOpen ? `${panelWidth}px` : '0px' } as React.CSSProperties}
+        style={{
+          '--panel-width': isPanelOpen ? `${panelWidth}px` : '0px',
+          '--inspector-width': isInspectorOpen ? `${inspectorWidth}px` : '0px',
+        } as React.CSSProperties}
       >
         <Sidebar activeView={activeView} onChangeView={selectView} onOpenSettings={openSettings} />
         <SidePanel
@@ -340,8 +512,16 @@ function App() {
         </button>
 
         <div className="content-area">
-          <div className="content">
-            {activeView === 'files' && selectedFilePath ? (
+          <div className={`content${activeView === 'logic' ? ' logic-view' : ''}`}>
+            {activeView === 'logic' ? (
+              <LogicView
+                projectTree={projectTree}
+                selectedFilePath={selectedFilePath}
+                onSelectFilePath={handleSelectFile}
+                revealKey={logicRevealKey}
+                ref={logicViewRef}
+              />
+            ) : activeView === 'files' && selectedFilePath ? (
               <div className="file-viewer">
                 <div
                   className="file-viewer-header"
@@ -452,6 +632,65 @@ function App() {
             </div>
           )}
         </div>
+        {!isInspectorOpen ? (
+          <button
+            className="inspector-open-btn"
+            onClick={() => setIsInspectorOpen(true)}
+            aria-label="Show inspector"
+            title="Show inspector"
+            type="button"
+          >
+            <svg className="inspector-open-icon" viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="9" cy="9" r="5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M13 13l4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        ) : null}
+        <aside className={`inspector${isInspectorOpen ? '' : ' closed'}`}>
+          <div className="inspector-header">
+            <span>INSPECTOR</span>
+            <button
+              className="inspector-toggle"
+              onClick={() => setIsInspectorOpen(false)}
+              aria-label="Hide inspector"
+              title="Hide inspector"
+              type="button"
+            >
+              <span className="inspector-toggle-icon">&gt;</span>
+              <span className="inspector-toggle-text">Hide</span>
+            </button>
+          </div>
+          <InspectorPanel filePath={selectedFilePath} fileContent={selectedFileContent} />
+        </aside>
+        {isInspectorOpen ? (
+          <div
+            className="inspector-resizer"
+            onMouseDown={startInspectorResize}
+            aria-label="Resize inspector"
+            role="separator"
+          />
+        ) : null}
+        {contextMenu && (
+          <div
+            className="context-menu"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+            onClick={(e) => e.stopPropagation()}
+            role="menu"
+          >
+            {contextMenu.items.map((item) => (
+              <button
+                key={item.label}
+                className="context-menu-item"
+                onClick={() => {
+                  item.action()
+                  setContextMenu(null)
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

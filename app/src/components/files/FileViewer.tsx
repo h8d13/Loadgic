@@ -5,7 +5,7 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github'
 import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized'
 import { nordInit } from '@uiw/codemirror-theme-nord'
 import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { Extension } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { useSettings } from '@/settings/useSettings'
@@ -177,17 +177,24 @@ const knownFilenames: Record<string, string> = {
 
 export default function FileViewer({ content, filePath, goToLine, onMarkersChange }: Props) {
   const { theme, editorTheme, autoWrap } = useSettings()
-  const [langExtension, setLangExtension] = useState<Extension | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [langState, setLangState] = useState<{ filePath: string; extension: Extension | null; loading: boolean }>({
+    filePath: '',
+    extension: null,
+    loading: true,
+  })
   const [markers, setMarkers] = useState<MarkerState>(
     () => markerCache.get(filePath) ?? initialMarkerState
   )
-  const userChangedMarkers = useRef(false)
+  const [markerWriteKey, setMarkerWriteKey] = useState(0)
+  const lastWrittenKeyRef = useRef(0)
   const editorRef = useRef<{ view?: EditorView }>(null)
+
+  // Derive loading state from whether lang state matches current file
+  const loading = langState.filePath !== filePath || langState.loading
+  const langExtension = langState.filePath === filePath ? langState.extension : null
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
 
     async function loadLang() {
       // Check known filenames first (e.g., LICENSE, Makefile, .gitignore)
@@ -204,14 +211,12 @@ export default function FileViewer({ content, filePath, goToLine, onMarkersChang
     loadLang()
       .then((lang) => {
         if (cancelled) return
-        setLangExtension(lang)
-        setLoading(false)
+        setLangState({ filePath, extension: lang, loading: false })
       })
       .catch((err) => {
         console.error('[FileViewer] Failed to load language:', err)
         if (cancelled) return
-        setLangExtension(null)
-        setLoading(false)
+        setLangState({ filePath, extension: null, loading: false })
       })
 
     return () => {
@@ -242,12 +247,12 @@ export default function FileViewer({ content, filePath, goToLine, onMarkersChang
   // Save markers to cache and .cstore only when user changes them
   useEffect(() => {
     markerCache.set(filePath, markers)
-    if (userChangedMarkers.current) {
+    if (markerWriteKey > lastWrittenKeyRef.current) {
+      lastWrittenKeyRef.current = markerWriteKey
       const meta = serializeMarkers(markers)
       window.loadgic.writeMeta(filePath, meta)
-      userChangedMarkers.current = false
     }
-  }, [filePath, markers])
+  }, [filePath, markers, markerWriteKey])
 
   // Notify parent of changes
   useEffect(() => {
@@ -266,14 +271,12 @@ export default function FileViewer({ content, filePath, goToLine, onMarkersChang
     })
   }, [goToLine?.key, goToLine?.line])
 
-  const handleCycle = useCallback((line: number) => {
-    userChangedMarkers.current = true
-    setMarkers((s) => cycleMarker(s, line))
-  }, [])
-
   const markerExtensions = useMemo(
-    () => createMarkerExtensions(markers, handleCycle),
-    [markers, handleCycle]
+    () => createMarkerExtensions(markers, (line: number) => {
+      setMarkerWriteKey((k) => k + 1)
+      setMarkers((s) => cycleMarker(s, line))
+    }),
+    [markers]
   )
 
   const extensions = useMemo(() => {

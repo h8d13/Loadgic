@@ -200,7 +200,11 @@ const MAX_VIEW_FILE_BYTES = 10 * 1024 * 1024 // 10MB
 handle('window:minimize', () => mainWindow?.minimize())
 handle('window:maximize', () => {
   if (!mainWindow) return
-  mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize()
+  } else {
+    mainWindow.maximize()
+  }
 })
 handle('window:close', () => mainWindow?.close())
 handle('window:toggle-fullscreen', () => {

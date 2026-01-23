@@ -45,6 +45,7 @@ function TreeNode({ node, level = 0, onSelectFile, selectedFilePath, showHidden 
         className={`file-tree-label ${node.type} ${
           node.path === selectedFilePath ? 'selected' : ''
         }`}
+        data-file-path={node.type === 'file' ? node.path : undefined}
         role={isDir ? 'button' : undefined}
         onClick={() => {
           if (isDir) {
